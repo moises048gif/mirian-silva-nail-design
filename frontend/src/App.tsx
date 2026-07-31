@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "./lib/supabase";
+import {useEffect, useMemo, useState} from "react";
+import {supabase} from "./lib/supabase";
 import "./App.css";
 
 type Service = {
@@ -93,7 +93,7 @@ function mergeIntervals(intervals: TimeInterval[]) {
         const previous = merged[merged.length - 1];
 
         if (!previous || current.start > previous.end) {
-            merged.push({ ...current });
+            merged.push({...current});
             return merged;
         }
 
@@ -158,13 +158,13 @@ function PublicSite() {
     const [isConfirmingBooking, setIsConfirmingBooking] = useState(false);
     const [services, setServices] = useState<Service[]>(fallbackServices);
     const [businessHours, setBusinessHours] = useState<Record<number, { startTime: string; endTime: string }>>({
-        0: { startTime: "07:00", endTime: "14:00" },
-        1: { startTime: "07:00", endTime: "20:00" },
-        2: { startTime: "07:00", endTime: "20:00" },
-        3: { startTime: "07:00", endTime: "20:00" },
-        4: { startTime: "07:00", endTime: "20:00" },
-        5: { startTime: "07:00", endTime: "20:00" },
-        6: { startTime: "07:00", endTime: "14:00" },
+        0: {startTime: "07:00", endTime: "14:00"},
+        1: {startTime: "07:00", endTime: "20:00"},
+        2: {startTime: "07:00", endTime: "20:00"},
+        3: {startTime: "07:00", endTime: "20:00"},
+        4: {startTime: "07:00", endTime: "20:00"},
+        5: {startTime: "07:00", endTime: "20:00"},
+        6: {startTime: "07:00", endTime: "14:00"},
     });
 
     function continueToDateSelection() {
@@ -196,17 +196,17 @@ function PublicSite() {
 
     useEffect(() => {
         async function loadPublicSettings() {
-            const [{ data: serviceData, error: serviceError }, { data: hoursData, error: hoursError }] =
+            const [{data: serviceData, error: serviceError}, {data: hoursData, error: hoursError}] =
                 await Promise.all([
                     supabase
                         .from("services")
                         .select("id, name, description, duration_minutes, price_cents, display_order")
                         .eq("is_active", true)
-                        .order("display_order", { ascending: true }),
+                        .order("display_order", {ascending: true}),
                     supabase
                         .from("business_hours")
                         .select("day_of_week, start_time, end_time")
-                        .order("day_of_week", { ascending: true }),
+                        .order("day_of_week", {ascending: true}),
                 ]);
 
             if (!serviceError && serviceData?.length) {
@@ -244,8 +244,8 @@ function PublicSite() {
             setIsLoadingAppointments(true);
 
             const [
-                { data: appointmentData, error: appointmentError },
-                { data: blockData, error: blockError },
+                {data: appointmentData, error: appointmentError},
+                {data: blockData, error: blockError},
             ] = await Promise.all([
                 supabase
                     .from("occupied_appointments")
@@ -360,7 +360,7 @@ function PublicSite() {
             )
             .map((appointment) => {
                 const start = timeToMinutes(appointment.startTime);
-                return { start, end: start + appointment.durationMinutes };
+                return {start, end: start + appointment.durationMinutes};
             });
 
         const blockedIntervals = scheduleBlocks
@@ -486,8 +486,8 @@ function PublicSite() {
 
         try {
             const [
-                { data: latestAppointments, error: appointmentLoadError },
-                { data: latestBlocks, error: blockLoadError },
+                {data: latestAppointments, error: appointmentLoadError},
+                {data: latestBlocks, error: blockLoadError},
             ] = await Promise.all([
                 supabase
                     .from("occupied_appointments")
@@ -580,7 +580,7 @@ function PublicSite() {
                 return;
             }
 
-            const { error: insertError } = await supabase
+            const {error: insertError} = await supabase
                 .from("appointments")
                 .insert({
                     client_name: clientName.trim(),
@@ -628,7 +628,7 @@ function PublicSite() {
     return (
         <main className="home">
             <section className="hero" id="inicio">
-                <div className="hero__overlay" />
+                <div className="hero__overlay"/>
 
                 <header className="navbar">
                     <a className="brand" href="#inicio">
@@ -645,7 +645,9 @@ function PublicSite() {
                         <a href="#agendamento">Agendamento</a>
                     </nav>
 
-                    <a className="navbar__button" href="#agendamento">Agendar</a>
+                    <a className="navbar__button" href="/admin">
+                        Login ADM
+                    </a>
                 </header>
 
                 <div className="hero__content">
@@ -655,8 +657,11 @@ function PublicSite() {
 
                     <div className="hero__actions">
                         <a className="button button--primary" href="#agendamento">Agendar horário</a>
-                        <a className="button button--instagram" href="https://www.instagram.com/nails.mirian.silva/" target="_blank" rel="noopener noreferrer">Instagram</a>
-                        <a className="button button--whatsapp" href="https://wa.me/5548998074518?text=Olá%2C%20Mirian!%20Gostaria%20de%20mais%20informações%20sobre%20os%20serviços." target="_blank" rel="noopener noreferrer">WhatsApp</a>
+                        <a className="button button--instagram" href="https://www.instagram.com/nails.mirian.silva/"
+                           target="_blank" rel="noopener noreferrer">Instagram</a>
+                        <a className="button button--whatsapp"
+                           href="https://wa.me/5548998074518?text=Olá%2C%20Mirian!%20Gostaria%20de%20mais%20informações%20sobre%20os%20serviços."
+                           target="_blank" rel="noopener noreferrer">WhatsApp</a>
                     </div>
 
                     <div className="hero__details">
@@ -665,8 +670,8 @@ function PublicSite() {
                     </div>
                 </div>
 
-                <div className="hero__decoration hero__decoration--one" />
-                <div className="hero__decoration hero__decoration--two" />
+                <div className="hero__decoration hero__decoration--one"/>
+                <div className="hero__decoration hero__decoration--two"/>
             </section>
 
             <section className="services" id="servicos">
@@ -680,12 +685,14 @@ function PublicSite() {
                     {services.map((service, index) => (
                         <article className="service-card" key={service.name}>
                             <span className="service-card__number">{String(index + 1).padStart(2, "0")}</span>
-                            <div className="service-card__content"><h3>{service.name}</h3><p>{service.description}</p></div>
+                            <div className="service-card__content"><h3>{service.name}</h3><p>{service.description}</p>
+                            </div>
                             <div className="service-card__footer">
                                 <div><span>Duração</span><strong>{service.duration}</strong></div>
                                 <div><span>Valor</span><strong>{service.price}</strong></div>
                             </div>
-                            <a href="#agendamento" className="service-card__button" onClick={() => selectService(service.name)}>Escolher este serviço</a>
+                            <a href="#agendamento" className="service-card__button"
+                               onClick={() => selectService(service.name)}>Escolher este serviço</a>
                         </article>
                     ))}
                 </div>
@@ -695,19 +702,30 @@ function PublicSite() {
                 <div className="booking__information">
                     <span className="section-label">Agendamento online</span>
                     <h2>Reserve seu horário de forma rápida e fácil</h2>
-                    <p>Informe seus dados e escolha o serviço desejado. Depois, você poderá selecionar a data e o horário do atendimento.</p>
+                    <p>Informe seus dados e escolha o serviço desejado. Depois, você poderá selecionar a data e o
+                        horário do atendimento.</p>
 
                     <div className="booking__steps">
-                        <div className="booking__step"><span>01</span><div><strong>Preencha seus dados</strong><p>Informe seu nome e telefone para contato.</p></div></div>
-                        <div className="booking__step"><span>02</span><div><strong>Escolha a data</strong><p>Selecione um dia dentro dos próximos 30 dias.</p></div></div>
-                        <div className="booking__step"><span>03</span><div><strong>Escolha o horário</strong><p>Selecione uma das opções disponíveis.</p></div></div>
+                        <div className="booking__step"><span>01</span>
+                            <div><strong>Preencha seus dados</strong><p>Informe seu nome e telefone para contato.</p>
+                            </div>
+                        </div>
+                        <div className="booking__step"><span>02</span>
+                            <div><strong>Escolha a data</strong><p>Selecione um dia dentro dos próximos 30 dias.</p>
+                            </div>
+                        </div>
+                        <div className="booking__step"><span>03</span>
+                            <div><strong>Escolha o horário</strong><p>Selecione uma das opções disponíveis.</p></div>
+                        </div>
                     </div>
 
-                    <div className="booking__notice"><span>✦</span><p>O tempo necessário será reservado automaticamente de acordo com o serviço escolhido.</p></div>
+                    <div className="booking__notice"><span>✦</span><p>O tempo necessário será reservado automaticamente
+                        de acordo com o serviço escolhido.</p></div>
                 </div>
 
                 <div className="booking__form-container">
-                    <div className="booking__form-header"><span>Solicitação de agendamento</span><h3>Vamos começar?</h3><p>Preencha seus dados para escolher o dia e o horário.</p></div>
+                    <div className="booking__form-header"><span>Solicitação de agendamento</span><h3>Vamos começar?</h3>
+                        <p>Preencha seus dados para escolher o dia e o horário.</p></div>
 
                     <form
                         className="booking__form"
@@ -716,12 +734,41 @@ function PublicSite() {
                             continueToDateSelection();
                         }}
                     >
-                        <div className="form-group"><label htmlFor="client-name">Nome completo</label><input id="client-name" name="client-name" type="text" placeholder="Digite seu nome" autoComplete="name" minLength={3} maxLength={80} value={clientName} onChange={(event) => { setClientName(event.target.value); setBookingError(""); }} required /></div>
-                        <div className="form-group"><label htmlFor="client-phone">Telefone ou WhatsApp</label><input id="client-phone" name="client-phone" type="tel" inputMode="numeric" placeholder="(00) 00000-0000" autoComplete="tel" maxLength={15} value={clientPhone} onChange={(event) => { setClientPhone(formatBrazilianPhone(event.target.value)); setBookingError(""); }} aria-describedby="client-phone-help" required /><small id="client-phone-help">Digite o DDD e o número. A formatação é automática.</small></div>
-                        <div className="form-group"><label htmlFor="client-email">E-mail — opcional</label><input id="client-email" name="client-email" type="email" inputMode="email" placeholder="seuemail@exemplo.com" autoComplete="email" maxLength={120} value={clientEmail} onChange={(event) => { setClientEmail(event.target.value); setBookingError(""); }} /></div>
-                        <div className="form-group"><label htmlFor="service">Escolha o serviço</label><select id="service" name="service" value={selectedService} onChange={(event) => selectService(event.target.value)} required><option value="" disabled>Selecione uma opção</option>{services.map((service) => <option key={service.name} value={service.name}>{service.name} — {service.price}</option>)}</select></div>
+                        <div className="form-group"><label htmlFor="client-name">Nome completo</label><input
+                            id="client-name" name="client-name" type="text" placeholder="Digite seu nome"
+                            autoComplete="name" minLength={3} maxLength={80} value={clientName} onChange={(event) => {
+                            setClientName(event.target.value);
+                            setBookingError("");
+                        }} required/></div>
+                        <div className="form-group"><label htmlFor="client-phone">Telefone ou WhatsApp</label><input
+                            id="client-phone" name="client-phone" type="tel" inputMode="numeric"
+                            placeholder="(00) 00000-0000" autoComplete="tel" maxLength={15} value={clientPhone}
+                            onChange={(event) => {
+                                setClientPhone(formatBrazilianPhone(event.target.value));
+                                setBookingError("");
+                            }} aria-describedby="client-phone-help" required/><small id="client-phone-help">Digite o DDD
+                            e o número. A formatação é automática.</small></div>
+                        <div className="form-group"><label htmlFor="client-email">E-mail — opcional</label><input
+                            id="client-email" name="client-email" type="email" inputMode="email"
+                            placeholder="seuemail@exemplo.com" autoComplete="email" maxLength={120} value={clientEmail}
+                            onChange={(event) => {
+                                setClientEmail(event.target.value);
+                                setBookingError("");
+                            }}/></div>
+                        <div className="form-group"><label htmlFor="service">Escolha o serviço</label><select
+                            id="service" name="service" value={selectedService}
+                            onChange={(event) => selectService(event.target.value)} required>
+                            <option value="" disabled>Selecione uma opção</option>
+                            {services.map((service) => <option key={service.name}
+                                                               value={service.name}>{service.name} — {service.price}</option>)}
+                        </select></div>
 
-                        {selectedServiceInformation && <div className="selected-service"><span>Serviço selecionado</span><strong>{selectedServiceInformation.name}</strong><div><small>{selectedServiceInformation.duration}</small><small>{selectedServiceInformation.price}</small></div></div>}
+                        {selectedServiceInformation && <div className="selected-service">
+                            <span>Serviço selecionado</span><strong>{selectedServiceInformation.name}</strong>
+                            <div>
+                                <small>{selectedServiceInformation.duration}</small><small>{selectedServiceInformation.price}</small>
+                            </div>
+                        </div>}
 
                         {bookingStep === 1 && bookingError && (
                             <p className="booking-modal__error" role="alert" aria-live="polite">
@@ -729,69 +776,128 @@ function PublicSite() {
                             </p>
                         )}
 
-                        <label className="form-checkbox"><input type="checkbox" required /><span>Confirmo que os dados informados estão corretos e desejo continuar para a escolha do dia e horário.</span></label>
+                        <label className="form-checkbox"><input type="checkbox" required/><span>Confirmo que os dados informados estão corretos e desejo continuar para a escolha do dia e horário.</span></label>
                         <button className="booking__submit" type="submit">Continuar agendamento<span>→</span></button>
                         <p className="booking__security">Seus dados serão utilizados apenas para o agendamento.</p>
                     </form>
                 </div>
 
-                {bookingStep === 2 && <div className="booking-modal"><div className="booking-modal__content">
-                    <button className="booking-modal__close" type="button" onClick={() => setBookingStep(1)} aria-label="Fechar escolha da data">×</button>
-                    <span className="section-label">Escolha a data</span><h3>Qual o melhor dia para você?</h3><p>As clientes podem agendar dentro dos próximos 30 dias.</p>
-                    <input className="booking-modal__date" type="date" min={today} max={maximumClientDate} value={selectedDate} onChange={(event) => { setSelectedDate(event.target.value); setSelectedTime(""); setBookingError(""); }} />
-                    <div className="booking-modal__availability"><strong>Horários de atendimento</strong><span>Segunda a sexta: 07:00 até o último início às 19:00</span><span>Sábado e domingo: 07:00 até o último início às 13:00</span></div>
-                    <button className="booking-modal__button" type="button" disabled={!selectedDate || isLoadingAppointments} onClick={() => setBookingStep(3)}>Continuar para horários</button>
-                </div></div>}
-
-                {bookingStep === 3 && <div className="booking-modal"><div className="booking-modal__content">
-                    <button className="booking-modal__close" type="button" onClick={() => { setBookingError(""); setBookingStep(2); }} aria-label="Voltar para a escolha da data">←</button>
-                    <span className="section-label">Escolha o horário</span><h3>Qual horário fica melhor?</h3><p>Os horários são calculados conforme os atendimentos já registrados e a duração do serviço.</p>
-                    <div className="booking-modal__summary"><div><span>Serviço</span><strong>{selectedService}</strong></div><div><span>Data escolhida</span><strong>{formatSelectedDate()}</strong></div><div><span>Duração</span><strong>{selectedServiceInformation?.duration}</strong></div><div><span>Tipo de agenda</span><strong>{isWeekend(selectedDate) ? "Fim de semana" : "Segunda a sexta"}</strong></div></div>
-                    {bookingError && <p className="booking-modal__error">{bookingError}</p>}
-                    {isLoadingAppointments ? (
-                        <p>Carregando horários disponíveis...</p>
-                    ) : availableTimes.length > 0 ? (
-                        <div className="booking-times">
-                            {availableTimes.map((time) => (
-                                <button
-                                    key={time}
-                                    className={
-                                        selectedTime === time
-                                            ? "booking-time booking-time--selected"
-                                            : "booking-time"
-                                    }
-                                    type="button"
-                                    onClick={() => {
-                                        setSelectedTime(time);
-                                        setBookingError("");
-                                    }}
-                                >
-                                    {time}
-                                </button>
-                            ))}
+                {bookingStep === 2 && <div className="booking-modal">
+                    <div className="booking-modal__content">
+                        <button className="booking-modal__close" type="button" onClick={() => setBookingStep(1)}
+                                aria-label="Fechar escolha da data">×
+                        </button>
+                        <span className="section-label">Escolha a data</span><h3>Qual o melhor dia para você?</h3><p>As
+                        clientes podem agendar dentro dos próximos 30 dias.</p>
+                        <input className="booking-modal__date" type="date" min={today} max={maximumClientDate}
+                               value={selectedDate} onChange={(event) => {
+                            setSelectedDate(event.target.value);
+                            setSelectedTime("");
+                            setBookingError("");
+                        }}/>
+                        <div className="booking-modal__availability"><strong>Horários de atendimento</strong><span>Segunda a sexta: 07:00 até o último início às 19:00</span><span>Sábado e domingo: 07:00 até o último início às 13:00</span>
                         </div>
-                    ) : (
-                        <div className="booking-times__empty">
-                            <strong>Nenhum horário disponível nesta data.</strong>
-                            <span>Volte e escolha outro dia para continuar.</span>
+                        <button className="booking-modal__button" type="button"
+                                disabled={!selectedDate || isLoadingAppointments}
+                                onClick={() => setBookingStep(3)}>Continuar para horários
+                        </button>
+                    </div>
+                </div>}
+
+                {bookingStep === 3 && <div className="booking-modal">
+                    <div className="booking-modal__content">
+                        <button className="booking-modal__close" type="button" onClick={() => {
+                            setBookingError("");
+                            setBookingStep(2);
+                        }} aria-label="Voltar para a escolha da data">←
+                        </button>
+                        <span className="section-label">Escolha o horário</span><h3>Qual horário fica melhor?</h3><p>Os
+                        horários são calculados conforme os atendimentos já registrados e a duração do serviço.</p>
+                        <div className="booking-modal__summary">
+                            <div><span>Serviço</span><strong>{selectedService}</strong></div>
+                            <div><span>Data escolhida</span><strong>{formatSelectedDate()}</strong></div>
+                            <div><span>Duração</span><strong>{selectedServiceInformation?.duration}</strong></div>
+                            <div>
+                                <span>Tipo de agenda</span><strong>{isWeekend(selectedDate) ? "Fim de semana" : "Segunda a sexta"}</strong>
+                            </div>
                         </div>
-                    )}
-                    <button className="booking-modal__button" type="button" disabled={!selectedTime} onClick={() => { setBookingError(""); setBookingStep(4); }}>Revisar agendamento</button>
-                </div></div>}
+                        {bookingError && <p className="booking-modal__error">{bookingError}</p>}
+                        {isLoadingAppointments ? (
+                            <p>Carregando horários disponíveis...</p>
+                        ) : availableTimes.length > 0 ? (
+                            <div className="booking-times">
+                                {availableTimes.map((time) => (
+                                    <button
+                                        key={time}
+                                        className={
+                                            selectedTime === time
+                                                ? "booking-time booking-time--selected"
+                                                : "booking-time"
+                                        }
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedTime(time);
+                                            setBookingError("");
+                                        }}
+                                    >
+                                        {time}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="booking-times__empty">
+                                <strong>Nenhum horário disponível nesta data.</strong>
+                                <span>Volte e escolha outro dia para continuar.</span>
+                            </div>
+                        )}
+                        <button className="booking-modal__button" type="button" disabled={!selectedTime}
+                                onClick={() => {
+                                    setBookingError("");
+                                    setBookingStep(4);
+                                }}>Revisar agendamento
+                        </button>
+                    </div>
+                </div>}
 
-                {bookingStep === 4 && <div className="booking-modal"><div className="booking-modal__content">
-                    <button className="booking-modal__close" type="button" onClick={() => { setBookingError(""); setBookingStep(3); }} aria-label="Voltar para os horários">←</button>
-                    <span className="section-label">Confirmação</span><h3>Revise seu agendamento</h3><p>Confira as informações antes de confirmar a solicitação.</p>
-                    <div className="booking-modal__summary"><div><span>Cliente</span><strong>{clientName}</strong></div><div><span>Telefone</span><strong>{clientPhone}</strong></div><div><span>Serviço</span><strong>{selectedService}</strong></div><div><span>Data</span><strong>{formatSelectedDate()}</strong></div><div><span>Horário</span><strong>{selectedTime}</strong></div><div><span>Valor</span><strong>{selectedServiceInformation?.price ?? ""}</strong></div></div>
-                    {bookingError && <p className="booking-modal__error">{bookingError}</p>}
-                    <button className="booking-modal__button" type="button" disabled={isConfirmingBooking} onClick={confirmBooking}>{isConfirmingBooking ? "Confirmando..." : "Confirmar agendamento"}</button>
-                </div></div>}
+                {bookingStep === 4 && <div className="booking-modal">
+                    <div className="booking-modal__content">
+                        <button className="booking-modal__close" type="button" onClick={() => {
+                            setBookingError("");
+                            setBookingStep(3);
+                        }} aria-label="Voltar para os horários">←
+                        </button>
+                        <span className="section-label">Confirmação</span><h3>Revise seu agendamento</h3><p>Confira as
+                        informações antes de confirmar a solicitação.</p>
+                        <div className="booking-modal__summary">
+                            <div><span>Cliente</span><strong>{clientName}</strong></div>
+                            <div><span>Telefone</span><strong>{clientPhone}</strong></div>
+                            <div><span>Serviço</span><strong>{selectedService}</strong></div>
+                            <div><span>Data</span><strong>{formatSelectedDate()}</strong></div>
+                            <div><span>Horário</span><strong>{selectedTime}</strong></div>
+                            <div><span>Valor</span><strong>{selectedServiceInformation?.price ?? ""}</strong></div>
+                        </div>
+                        {bookingError && <p className="booking-modal__error">{bookingError}</p>}
+                        <button className="booking-modal__button" type="button" disabled={isConfirmingBooking}
+                                onClick={confirmBooking}>{isConfirmingBooking ? "Confirmando..." : "Confirmar agendamento"}</button>
+                    </div>
+                </div>}
 
-                {bookingStep === 5 && <div className="booking-modal"><div className="booking-modal__content booking-success">
-                    <div className="booking-success__icon">✓</div><span className="section-label">Agendamento realizado</span><h3>Seu agendamento foi confirmado com sucesso!</h3><p>Obrigado, {clientName}. Seu agendamento está confirmado e o horário já foi reservado para você.</p>
-                    <div className="booking-modal__summary"><div><span>Serviço</span><strong>{selectedService}</strong></div><div><span>Data</span><strong>{formatSelectedDate()}</strong></div><div><span>Horário</span><strong>{selectedTime}</strong></div><div><span>Telefone</span><strong>{clientPhone}</strong></div></div>
-                    <button className="booking-modal__button" type="button" onClick={closeBooking}>Finalizar</button>
-                </div></div>}
+                {bookingStep === 5 && <div className="booking-modal">
+                    <div className="booking-modal__content booking-success">
+                        <div className="booking-success__icon">✓</div>
+                        <span className="section-label">Agendamento realizado</span><h3>Seu agendamento foi confirmado
+                        com sucesso!</h3><p>Obrigado, {clientName}. Seu agendamento está confirmado e o horário já foi
+                        reservado para você.</p>
+                        <div className="booking-modal__summary">
+                            <div><span>Serviço</span><strong>{selectedService}</strong></div>
+                            <div><span>Data</span><strong>{formatSelectedDate()}</strong></div>
+                            <div><span>Horário</span><strong>{selectedTime}</strong></div>
+                            <div><span>Telefone</span><strong>{clientPhone}</strong></div>
+                        </div>
+                        <button className="booking-modal__button" type="button" onClick={closeBooking}>Finalizar
+                        </button>
+                    </div>
+                </div>}
             </section>
         </main>
     );
@@ -2581,7 +2687,7 @@ function AdminPanel() {
     useEffect(() => {
         async function checkSession() {
             const {
-                data: { session },
+                data: {session},
             } = await supabase.auth.getSession();
 
             setIsAuthenticated(Boolean(session));
@@ -2591,7 +2697,7 @@ function AdminPanel() {
         void checkSession();
 
         const {
-            data: { subscription },
+            data: {subscription},
         } = supabase.auth.onAuthStateChange((_event, session) => {
             setIsAuthenticated(Boolean(session));
             setIsCheckingSession(false);
@@ -2611,33 +2717,33 @@ function AdminPanel() {
             setPanelError("");
 
             const [
-                { data: appointmentData, error: appointmentError },
-                { data: blockData, error: blockLoadError },
-                { data: serviceData, error: serviceLoadError },
-                { data: hoursData, error: hoursLoadError },
+                {data: appointmentData, error: appointmentError},
+                {data: blockData, error: blockLoadError},
+                {data: serviceData, error: serviceLoadError},
+                {data: hoursData, error: hoursLoadError},
             ] = await Promise.all([
                 supabase
                     .from("appointments")
                     .select(
                         "id, client_name, client_phone, client_email, service_name, appointment_date, start_time, duration_minutes, status, created_at",
                     )
-                    .order("appointment_date", { ascending: true })
-                    .order("start_time", { ascending: true }),
+                    .order("appointment_date", {ascending: true})
+                    .order("start_time", {ascending: true}),
                 supabase
                     .from("schedule_blocks")
                     .select(
                         "id, block_date, start_time, end_time, reason, created_at",
                     )
-                    .order("block_date", { ascending: true })
-                    .order("start_time", { ascending: true }),
+                    .order("block_date", {ascending: true})
+                    .order("start_time", {ascending: true}),
                 supabase
                     .from("services")
                     .select("id, name, description, duration_minutes, price_cents, display_order")
-                    .order("display_order", { ascending: true }),
+                    .order("display_order", {ascending: true}),
                 supabase
                     .from("business_hours")
                     .select("id, day_of_week, start_time, end_time")
-                    .order("day_of_week", { ascending: true }),
+                    .order("day_of_week", {ascending: true}),
             ]);
 
             if (appointmentError || blockLoadError || serviceLoadError || hoursLoadError) {
@@ -2713,7 +2819,7 @@ function AdminPanel() {
         setLoginError("");
         setIsLoggingIn(true);
 
-        const { error } = await supabase.auth.signInWithPassword({
+        const {error} = await supabase.auth.signInWithPassword({
             email: email.trim(),
             password,
         });
@@ -2740,9 +2846,9 @@ function AdminPanel() {
         setUpdatingId(appointmentId);
         setPanelError("");
 
-        const { error } = await supabase
+        const {error} = await supabase
             .from("appointments")
-            .update({ status })
+            .update({status})
             .eq("id", appointmentId);
 
         if (error) {
@@ -2757,7 +2863,7 @@ function AdminPanel() {
         setAppointments((currentAppointments) =>
             currentAppointments.map((appointment) =>
                 appointment.id === appointmentId
-                    ? { ...appointment, status }
+                    ? {...appointment, status}
                     : appointment,
             ),
         );
@@ -2829,7 +2935,7 @@ function AdminPanel() {
         setIsRescheduling(true);
         setRescheduleError("");
 
-        const { data: latestData, error: latestError } = await supabase
+        const {data: latestData, error: latestError} = await supabase
             .from("appointments")
             .select(
                 "id, client_name, client_phone, client_email, service_name, appointment_date, start_time, duration_minutes, status, created_at",
@@ -2864,7 +2970,7 @@ function AdminPanel() {
             return;
         }
 
-        const { error } = await supabase
+        const {error} = await supabase
             .from("appointments")
             .update({
                 appointment_date: rescheduleDate,
@@ -2931,7 +3037,7 @@ function AdminPanel() {
         }
 
         setSavingServiceId(service.id);
-        const { error } = await supabase
+        const {error} = await supabase
             .from("services")
             .update({
                 name: service.name.trim(),
@@ -2947,7 +3053,7 @@ function AdminPanel() {
             setAdminServices((current) =>
                 current.map((item) =>
                     item.id === service.id
-                        ? { ...service, name: service.name.trim() }
+                        ? {...service, name: service.name.trim()}
                         : item,
                 ),
             );
@@ -2963,7 +3069,7 @@ function AdminPanel() {
     ) {
         setAdminBusinessHours((current) =>
             current.map((hours) =>
-                hours.id === hoursId ? { ...hours, [field]: value } : hours,
+                hours.id === hoursId ? {...hours, [field]: value} : hours,
             ),
         );
     }
@@ -2978,9 +3084,9 @@ function AdminPanel() {
         }
 
         setSavingHoursId(hours.id);
-        const { error } = await supabase
+        const {error} = await supabase
             .from("business_hours")
-            .update({ start_time: hours.start_time, end_time: hours.end_time })
+            .update({start_time: hours.start_time, end_time: hours.end_time})
             .eq("id", hours.id);
 
         if (error) {
@@ -3057,8 +3163,8 @@ function AdminPanel() {
         setIsSavingManualAppointment(true);
 
         const [
-            { data: latestAppointmentsData, error: appointmentsError },
-            { data: latestBlocksData, error: blocksError },
+            {data: latestAppointmentsData, error: appointmentsError},
+            {data: latestBlocksData, error: blocksError},
         ] = await Promise.all([
             supabase
                 .from("appointments")
@@ -3122,7 +3228,7 @@ function AdminPanel() {
             return;
         }
 
-        const { data, error } = await supabase
+        const {data, error} = await supabase
             .from("appointments")
             .insert({
                 client_name: manualClientName.trim(),
@@ -3230,7 +3336,7 @@ function AdminPanel() {
 
         setIsSavingBlock(true);
 
-        const { data, error } = await supabase
+        const {data, error} = await supabase
             .from("schedule_blocks")
             .insert({
                 block_date: blockDate,
@@ -3266,7 +3372,7 @@ function AdminPanel() {
     async function deleteScheduleBlock(blockId: string) {
         setBlockError("");
 
-        const { error } = await supabase
+        const {error} = await supabase
             .from("schedule_blocks")
             .delete()
             .eq("id", blockId);
@@ -3328,7 +3434,7 @@ function AdminPanel() {
             (appointment) => appointment.id,
         );
 
-        const { error } = await supabase
+        const {error} = await supabase
             .from("appointments")
             .update({
                 client_name: normalizedName,
@@ -3487,7 +3593,7 @@ function AdminPanel() {
         const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
         const monday = addDaysToInputDate(agendaDate, mondayOffset);
 
-        return Array.from({ length: 7 }, (_, index) =>
+        return Array.from({length: 7}, (_, index) =>
             addDaysToInputDate(monday, index),
         );
     }, [agendaDate]);
@@ -3811,7 +3917,8 @@ function AdminPanel() {
                                                 onChange={(event) => updateAdminServiceField(service.id, "duration_minutes", event.target.value)}
                                             />
                                         </label>
-                                        <button type="button" disabled={savingServiceId === service.id} onClick={() => void saveAdminService(service)}>
+                                        <button type="button" disabled={savingServiceId === service.id}
+                                                onClick={() => void saveAdminService(service)}>
                                             {savingServiceId === service.id ? "Salvando..." : "Salvar"}
                                         </button>
                                     </article>
@@ -3830,13 +3937,16 @@ function AdminPanel() {
                                         <strong>{dayNames[hours.day_of_week]}</strong>
                                         <label>
                                             Início
-                                            <input type="time" value={hours.start_time} onChange={(event) => updateAdminHoursField(hours.id, "start_time", event.target.value)} />
+                                            <input type="time" value={hours.start_time}
+                                                   onChange={(event) => updateAdminHoursField(hours.id, "start_time", event.target.value)}/>
                                         </label>
                                         <label>
                                             Final
-                                            <input type="time" value={hours.end_time} onChange={(event) => updateAdminHoursField(hours.id, "end_time", event.target.value)} />
+                                            <input type="time" value={hours.end_time}
+                                                   onChange={(event) => updateAdminHoursField(hours.id, "end_time", event.target.value)}/>
                                         </label>
-                                        <button type="button" disabled={savingHoursId === hours.id} onClick={() => void saveAdminHours(hours)}>
+                                        <button type="button" disabled={savingHoursId === hours.id}
+                                                onClick={() => void saveAdminHours(hours)}>
                                             {savingHoursId === hours.id ? "Salvando..." : "Salvar"}
                                         </button>
                                     </article>
@@ -4102,7 +4212,7 @@ function AdminPanel() {
                                             }
                                         >
                                             {Array.from(
-                                                { length: 25 },
+                                                {length: 25},
                                                 (_, index) => {
                                                     const totalMinutes =
                                                         7 * 60 + index * 30;
@@ -4327,7 +4437,7 @@ function AdminPanel() {
                         ) : adminView === "agenda" ? (
                             <div className="admin-agenda">
                                 <div className="admin-agenda__hours">
-                                    {Array.from({ length: 14 }, (_, index) => {
+                                    {Array.from({length: 14}, (_, index) => {
                                         const hour = 7 + index;
                                         return (
                                             <div
@@ -5142,7 +5252,7 @@ function AdminPanel() {
                                                         }
                                                     >
                                                         {Array.from(
-                                                            { length: 25 },
+                                                            {length: 25},
                                                             (_, index) => {
                                                                 const totalMinutes =
                                                                     7 * 60 +
@@ -5223,10 +5333,10 @@ function App() {
     const normalizedPath = window.location.pathname.replace(/\/+$/, "");
 
     if (normalizedPath === "/admin") {
-        return <AdminPanel />;
+        return <AdminPanel/>;
     }
 
-    return <PublicSite />;
+    return <PublicSite/>;
 }
 
 export default App;
