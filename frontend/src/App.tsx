@@ -158,13 +158,13 @@ function PublicSite() {
     const [isConfirmingBooking, setIsConfirmingBooking] = useState(false);
     const [services, setServices] = useState<Service[]>(fallbackServices);
     const [businessHours, setBusinessHours] = useState<Record<number, { startTime: string; endTime: string }>>({
-        0: {startTime: "07:00", endTime: "14:00"},
-        1: {startTime: "07:00", endTime: "20:00"},
-        2: {startTime: "07:00", endTime: "20:00"},
-        3: {startTime: "07:00", endTime: "20:00"},
-        4: {startTime: "07:00", endTime: "20:00"},
-        5: {startTime: "07:00", endTime: "20:00"},
-        6: {startTime: "07:00", endTime: "14:00"},
+        0: {startTime: "07:00", endTime: "13:00"},
+        1: {startTime: "07:00", endTime: "19:00"},
+        2: {startTime: "07:00", endTime: "19:00"},
+        3: {startTime: "07:00", endTime: "19:00"},
+        4: {startTime: "07:00", endTime: "19:00"},
+        5: {startTime: "07:00", endTime: "19:00"},
+        6: {startTime: "07:00", endTime: "13:00"},
     });
 
     function continueToDateSelection() {
@@ -389,13 +389,12 @@ function PublicSite() {
         const openingTime = configuredHours
             ? timeToMinutes(configuredHours.startTime)
             : 7 * 60;
-        const closingTime = configuredHours
-            ? timeToMinutes(configuredHours.endTime)
-            : isWeekend(date)
-                ? 14 * 60
-                : 20 * 60;
-        const lastStartingTime = closingTime - serviceDurationMinutes;
-        const defaultInterval = 120;
+
+        // O horário final representa o último horário em que um atendimento pode começar.
+        // Segunda a sexta: último início às 19:00.
+        // Sábado e domingo: último início às 13:00.
+        const lastStartingTime = isWeekend(date) ? 13 * 60 : 19 * 60;
+        const defaultInterval = 30;
         const occupiedIntervals = getOccupiedIntervals(date);
         const generatedTimes: number[] = [];
 
@@ -2932,6 +2931,20 @@ function AdminPanel() {
             return;
         }
 
+        const rescheduleStart = getMinutesFromTime(rescheduleTime);
+        const rescheduleDay = selectedDateValue.getDay();
+        const lastRescheduleStartingTime =
+            rescheduleDay === 0 || rescheduleDay === 6 ? 13 * 60 : 19 * 60;
+
+        if (rescheduleStart < 7 * 60 || rescheduleStart > lastRescheduleStartingTime) {
+            setRescheduleError(
+                rescheduleDay === 0 || rescheduleDay === 6
+                    ? "Nos finais de semana, escolha um horário entre 07:00 e 13:00."
+                    : "Durante a semana, escolha um horário entre 07:00 e 19:00.",
+            );
+            return;
+        }
+
         setIsRescheduling(true);
         setRescheduleError("");
 
@@ -3148,14 +3161,14 @@ function AdminPanel() {
         const requestedEnd =
             requestedStart + selectedService.duration_minutes;
         const selectedDay = selectedDateValue.getDay();
-        const closingMinutes =
-            selectedDay === 0 || selectedDay === 6 ? 13 * 60 : 20 * 60;
+        const lastStartingMinutes =
+            selectedDay === 0 || selectedDay === 6 ? 13 * 60 : 19 * 60;
 
-        if (requestedStart < 7 * 60 || requestedEnd > closingMinutes) {
+        if (requestedStart < 7 * 60 || requestedStart > lastStartingMinutes) {
             setManualError(
                 selectedDay === 0 || selectedDay === 6
-                    ? "Nos finais de semana, o atendimento precisa terminar até 13:00."
-                    : "Durante a semana, o atendimento precisa terminar até 20:00.",
+                    ? "Nos finais de semana, o último horário de início é 13:00."
+                    : "Durante a semana, o último horário de início é 19:00.",
             );
             return;
         }
