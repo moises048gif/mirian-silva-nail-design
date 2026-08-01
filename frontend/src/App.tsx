@@ -69,12 +69,6 @@ function formatDateForInput(date: Date) {
     return `${year}-${month}-${day}`;
 }
 
-function addDays(date: Date, days: number) {
-    const result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
-}
-
 function timeToMinutes(time: string) {
     const [hours, minutes] = time.split(":").map(Number);
     return hours * 60 + minutes;
@@ -339,7 +333,6 @@ function PublicSite() {
 
     const todayDate = new Date();
     const today = formatDateForInput(todayDate);
-    const maximumClientDate = formatDateForInput(addDays(todayDate, 30));
 
     const selectedServiceInformation = services.find(
         (service) => service.name === selectedService,
@@ -710,7 +703,7 @@ function PublicSite() {
                             </div>
                         </div>
                         <div className="booking__step"><span>02</span>
-                            <div><strong>Escolha a data</strong><p>Selecione um dia dentro dos próximos 30 dias.</p>
+                            <div><strong>Escolha a data</strong><p>Selecione qualquer data futura.</p>
                             </div>
                         </div>
                         <div className="booking__step"><span>03</span>
@@ -787,8 +780,8 @@ function PublicSite() {
                                 aria-label="Fechar escolha da data">×
                         </button>
                         <span className="section-label">Escolha a data</span><h3>Qual o melhor dia para você?</h3><p>As
-                        clientes podem agendar dentro dos próximos 30 dias.</p>
-                        <input className="booking-modal__date" type="date" min={today} max={maximumClientDate}
+                        clientes podem escolher qualquer data futura.</p>
+                        <input className="booking-modal__date" type="date" min={today}
                                value={selectedDate} onChange={(event) => {
                             setSelectedDate(event.target.value);
                             setSelectedTime("");
@@ -2580,32 +2573,8 @@ function normalizePhoneForWhatsApp(phone: string) {
         return digits;
     }
 
-    return `55${digits}
-.admin-settings { display: grid; gap: 24px; }
-.admin-settings__intro { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; background:#fff; border:1px solid #eadde1; border-radius:20px; padding:24px; }
-.admin-settings__intro h2 { margin:4px 0 8px; }
-.admin-settings__intro p { margin:0; color:#765f66; line-height:1.5; }
-.admin-settings__eyebrow { color:#92566a; text-transform:uppercase; letter-spacing:.12em; font-size:.75rem; font-weight:800; }
-.admin-settings__section { background:#fff; border:1px solid #eadde1; border-radius:20px; padding:24px; }
-.admin-settings__section-header { margin-bottom:18px; }
-.admin-settings__section-header h3 { margin:0 0 6px; }
-.admin-settings__section-header p { margin:0; color:#765f66; }
-.admin-settings__list { display:grid; gap:14px; }
-.admin-settings__service { display:grid; grid-template-columns:minmax(220px,2fr) minmax(130px,1fr) minmax(130px,1fr) auto; gap:14px; align-items:end; padding:16px; background:#fbf8f9; border:1px solid #eee2e5; border-radius:16px; }
-.admin-settings__hours { display:grid; grid-template-columns:minmax(150px,1.4fr) minmax(130px,1fr) minmax(130px,1fr) auto; gap:14px; align-items:end; padding:14px 16px; border-bottom:1px solid #eee2e5; }
-.admin-settings__hours:last-child { border-bottom:0; }
-.admin-settings label { display:grid; gap:7px; font-weight:700; font-size:.88rem; }
-.admin-settings input { width:100%; box-sizing:border-box; border:1px solid #d8c7cc; border-radius:11px; padding:11px 12px; font:inherit; color:#251c1f; background:#fff; }
-.admin-settings button { border:0; border-radius:11px; padding:12px 16px; background:#7d4b5a; color:#fff; font-weight:800; cursor:pointer; white-space:nowrap; }
-.admin-settings button:disabled { opacity:.6; cursor:wait; }
-.admin-settings__message { margin:0; padding:13px 15px; border-radius:12px; font-weight:700; }
-.admin-settings__message--error { background:#fff0f0; color:#9d3030; }
-.admin-settings__message--success { background:#eef8f1; color:#2e7545; }
-@media (max-width: 850px) { .admin-settings__service, .admin-settings__hours { grid-template-columns:1fr 1fr; } .admin-settings__service label:first-child, .admin-settings__hours strong { grid-column:1/-1; } }
-@media (max-width: 560px) { .admin-settings__service, .admin-settings__hours { grid-template-columns:1fr; } .admin-settings__service label:first-child, .admin-settings__hours strong { grid-column:auto; } .admin-settings button { width:100%; } }
-`;
+    return `55${digits}`;
 }
-
 
 function addDaysToInputDate(date: string, amount: number) {
     const value = new Date(`${date}T12:00:00`);
@@ -2624,6 +2593,322 @@ function getAppointmentDateTime(appointment: AdminAppointment) {
     );
 }
 
+
+const adminEnhancementStyles = `
+.admin-dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.admin-dashboard-card {
+    border: 1px solid #e5d2d8;
+    border-radius: 17px;
+    padding: 18px;
+    background: #fff;
+    color: #6d3445;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 9px 26px rgba(83, 48, 58, 0.06);
+}
+.admin-dashboard-card strong,
+.admin-dashboard-card span {
+    display: block;
+}
+.admin-dashboard-card strong {
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+.admin-dashboard-card span {
+    color: #80666e;
+    font-size: .82rem;
+}
+.admin-dashboard-card.is-active {
+    color: #fff;
+    border-color: transparent;
+    background: linear-gradient(135deg, #6d3445, #a86175);
+}
+.admin-dashboard-card.is-active span { color: rgba(255,255,255,.82); }
+
+.admin-content-section {
+    display: grid;
+    gap: 16px;
+}
+.admin-section-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-end;
+    padding: 18px 20px;
+    border: 1px solid #eadde1;
+    border-radius: 18px;
+    background: #fff;
+}
+.admin-section-heading h2 { margin: 0 0 5px; }
+.admin-section-heading p { margin: 0; color: #80666e; }
+.admin-section-date-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+.admin-section-date-controls button {
+    border: 1px solid #d7c0c7;
+    border-radius: 10px;
+    padding: 10px 13px;
+    background: #fff;
+    color: #6d3445;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+.admin-section-date-controls input {
+    border: 1px solid #d7c0c7;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font: inherit;
+}
+
+.admin-card-list {
+    display: grid;
+    gap: 13px;
+}
+.admin-day-group {
+    display: grid;
+    gap: 11px;
+}
+.admin-day-group__title {
+    margin: 8px 0 0;
+    padding: 11px 14px;
+    border-radius: 12px;
+    background: #efe3e7;
+    color: #5e3542;
+    text-transform: capitalize;
+}
+.admin-booking-card {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #e0c7cf;
+    border-left: 6px solid #8b485d;
+    border-radius: 17px;
+    padding: 17px 18px;
+    background: linear-gradient(135deg, #fff, #fbf4f6);
+    box-shadow: 0 9px 26px rgba(83, 48, 58, 0.07);
+    text-align: left;
+    cursor: pointer;
+}
+.admin-booking-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 13px 32px rgba(83, 48, 58, 0.1);
+}
+.admin-booking-card.is-cancelled {
+    opacity: .68;
+    border-left-color: #aaa0a4;
+}
+.admin-booking-card__top {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: flex-start;
+}
+.admin-booking-card__time {
+    color: #8b485d;
+    font-size: 1.08rem;
+    font-weight: 900;
+}
+.admin-booking-card h3 {
+    margin: 5px 0 0;
+    color: #302126;
+}
+.admin-booking-card__details {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+.admin-booking-card__details div {
+    padding: 10px 11px;
+    border-radius: 11px;
+    background: #f7ecef;
+}
+.admin-booking-card__details span,
+.admin-booking-card__details strong {
+    display: block;
+}
+.admin-booking-card__details span {
+    color: #80666e;
+    font-size: .7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.admin-booking-card__details strong {
+    margin-top: 4px;
+    color: #4d363e;
+    font-size: .84rem;
+    overflow-wrap: anywhere;
+}
+.admin-booking-card__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 13px;
+}
+.admin-booking-card__footer a,
+.admin-booking-card__footer button {
+    border: 0;
+    border-radius: 9px;
+    padding: 9px 11px;
+    color: #fff;
+    font: inherit;
+    font-size: .78rem;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+}
+.admin-booking-card__footer button { background: #6d3445; }
+.admin-booking-card__footer a { background: #1f9d59; }
+
+.admin-edit-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 13px;
+}
+.admin-edit-form label {
+    display: grid;
+    gap: 7px;
+    font-size: .84rem;
+    font-weight: 800;
+}
+.admin-edit-form input,
+.admin-edit-form select {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #d8c7cc;
+    border-radius: 11px;
+    padding: 11px 12px;
+    font: inherit;
+}
+.admin-edit-form__full { grid-column: 1 / -1; }
+.admin-edit-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 5px;
+}
+.admin-edit-actions button {
+    border: 0;
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: #fff;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+.admin-edit-actions .save { background: #6d3445; }
+.admin-edit-actions .cancel { background: #a23f4d; }
+.admin-edit-actions .delete { background: #3e272d; }
+.admin-edit-actions .close { background: #8a7078; }
+
+.admin-client-card__actions .is-danger {
+    background: #a23f4d;
+    color: #fff;
+}
+.admin-client-card__metrics {
+    grid-template-columns: 1fr 1fr;
+}
+
+.admin-block-manager--bottom {
+    margin-top: 22px;
+    margin-bottom: 0;
+}
+.admin-block-date-row {
+    display: grid;
+    grid-template-columns: minmax(180px, 260px) minmax(220px, 1fr);
+    gap: 13px;
+    align-items: end;
+}
+.admin-block-date-row label {
+    display: grid;
+    gap: 7px;
+    font-weight: 800;
+    font-size: .84rem;
+}
+.admin-block-date-row input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #d8c7cc;
+    border-radius: 11px;
+    padding: 11px 12px;
+    font: inherit;
+}
+.admin-block-times {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+    gap: 9px;
+    margin-top: 15px;
+}
+.admin-block-time {
+    border: 1px solid #d9c1c8;
+    border-radius: 11px;
+    padding: 11px 8px;
+    background: #fff;
+    color: #6d3445;
+    font: inherit;
+    font-weight: 850;
+    cursor: pointer;
+}
+.admin-block-time.is-selected {
+    background: #6d3445;
+    color: #fff;
+    border-color: #6d3445;
+}
+.admin-block-submit-row {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto;
+    gap: 10px;
+    margin-top: 14px;
+}
+.admin-block-submit-row input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #d8c7cc;
+    border-radius: 11px;
+    padding: 11px 12px;
+    font: inherit;
+}
+.admin-block-submit-row button {
+    border: 0;
+    border-radius: 11px;
+    padding: 11px 16px;
+    background: #6d3445;
+    color: #fff;
+    font: inherit;
+    font-weight: 850;
+    cursor: pointer;
+}
+.admin-block-submit-row button:disabled { opacity: .55; cursor: wait; }
+
+@media (max-width: 850px) {
+    .admin-dashboard-cards { grid-template-columns: 1fr 1fr; }
+    .admin-booking-card__details { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 620px) {
+    .admin-dashboard-cards,
+    .admin-booking-card__details,
+    .admin-edit-form,
+    .admin-block-date-row,
+    .admin-block-submit-row {
+        grid-template-columns: 1fr;
+    }
+    .admin-edit-form__full,
+    .admin-edit-actions { grid-column: auto; }
+    .admin-section-heading,
+    .admin-booking-card__top { flex-direction: column; align-items: stretch; }
+}
+`;
+
+
 function AdminPanel() {
     const [isCheckingSession, setIsCheckingSession] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -2631,43 +2916,40 @@ function AdminPanel() {
     const [password, setPassword] = useState("");
     const [loginError, setLoginError] = useState("");
     const [isLoggingIn, setIsLoggingIn] = useState(false);
+
     const [appointments, setAppointments] = useState<AdminAppointment[]>([]);
+    const [adminBlocks, setAdminBlocks] = useState<AdminScheduleBlock[]>([]);
+    const [adminServices, setAdminServices] = useState<AdminServiceSetting[]>([]);
+    const [adminBusinessHours, setAdminBusinessHours] = useState<AdminBusinessHour[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [panelError, setPanelError] = useState("");
-    const [search, setSearch] = useState("");
-    const [dateFilter, setDateFilter] = useState("");
-    const [statusFilter, setStatusFilter] = useState("confirmed");
-    const [updatingId, setUpdatingId] = useState("");
-    const [adminView, setAdminView] = useState<"agenda" | "week" | "list" | "clients" | "settings">("agenda");
+
+    const [adminView, setAdminView] = useState<"agenda" | "week" | "clients" | "settings">("agenda");
     const [agendaDate, setAgendaDate] = useState(formatDateForInput(new Date()));
-    const [selectedAdminAppointment, setSelectedAdminAppointment] =
-        useState<AdminAppointment | null>(null);
-    const [rescheduleDate, setRescheduleDate] = useState("");
-    const [rescheduleTime, setRescheduleTime] = useState("");
-    const [rescheduleError, setRescheduleError] = useState("");
-    const [isRescheduling, setIsRescheduling] = useState(false);
-    const [adminBlocks, setAdminBlocks] = useState<AdminScheduleBlock[]>([]);
-    const [blockDate, setBlockDate] = useState(formatDateForInput(new Date()));
-    const [blockStartTime, setBlockStartTime] = useState("12:00");
-    const [blockEndTime, setBlockEndTime] = useState("13:00");
-    const [blockReason, setBlockReason] = useState("");
-    const [blockError, setBlockError] = useState("");
-    const [isSavingBlock, setIsSavingBlock] = useState(false);
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("confirmed");
+
     const [showManualForm, setShowManualForm] = useState(false);
     const [manualClientName, setManualClientName] = useState("");
     const [manualClientPhone, setManualClientPhone] = useState("");
     const [manualClientEmail, setManualClientEmail] = useState("");
-    const [manualServiceName, setManualServiceName] = useState(
-        fallbackServices[0].name,
-    );
-    const [manualDate, setManualDate] = useState(
-        formatDateForInput(new Date()),
-    );
+    const [manualServiceName, setManualServiceName] = useState(fallbackServices[0].name);
+    const [manualDate, setManualDate] = useState(formatDateForInput(new Date()));
     const [manualTime, setManualTime] = useState("07:00");
     const [manualError, setManualError] = useState("");
     const [manualSuccess, setManualSuccess] = useState("");
-    const [isSavingManualAppointment, setIsSavingManualAppointment] =
-        useState(false);
+    const [isSavingManualAppointment, setIsSavingManualAppointment] = useState(false);
+
+    const [selectedAdminAppointment, setSelectedAdminAppointment] = useState<AdminAppointment | null>(null);
+    const [editAppointmentName, setEditAppointmentName] = useState("");
+    const [editAppointmentPhone, setEditAppointmentPhone] = useState("");
+    const [editAppointmentEmail, setEditAppointmentEmail] = useState("");
+    const [editAppointmentService, setEditAppointmentService] = useState("");
+    const [editAppointmentDate, setEditAppointmentDate] = useState("");
+    const [editAppointmentTime, setEditAppointmentTime] = useState("");
+    const [appointmentEditError, setAppointmentEditError] = useState("");
+    const [isSavingAppointment, setIsSavingAppointment] = useState(false);
+
     const [clientSearch, setClientSearch] = useState("");
     const [selectedClient, setSelectedClient] = useState<AdminClient | null>(null);
     const [editingClient, setEditingClient] = useState<AdminClient | null>(null);
@@ -2676,32 +2958,35 @@ function AdminPanel() {
     const [editClientEmail, setEditClientEmail] = useState("");
     const [clientEditError, setClientEditError] = useState("");
     const [isSavingClient, setIsSavingClient] = useState(false);
-    const [adminServices, setAdminServices] = useState<AdminServiceSetting[]>([]);
-    const [adminBusinessHours, setAdminBusinessHours] = useState<AdminBusinessHour[]>([]);
+    const [deletingClientKey, setDeletingClientKey] = useState("");
+
+    const [blockDate, setBlockDate] = useState(formatDateForInput(new Date()));
+    const [selectedBlockTimes, setSelectedBlockTimes] = useState<string[]>([]);
+    const [blockReason, setBlockReason] = useState("");
+    const [blockError, setBlockError] = useState("");
+    const [isSavingBlock, setIsSavingBlock] = useState(false);
+
     const [settingsError, setSettingsError] = useState("");
     const [settingsSuccess, setSettingsSuccess] = useState("");
     const [savingServiceId, setSavingServiceId] = useState<number | null>(null);
     const [savingHoursId, setSavingHoursId] = useState<number | null>(null);
 
+    const allDayTimes = useMemo(
+        () => Array.from({length: 48}, (_, index) => minutesToTime(index * 30)),
+        [],
+    );
+
     useEffect(() => {
         async function checkSession() {
-            const {
-                data: {session},
-            } = await supabase.auth.getSession();
-
+            const {data: {session}} = await supabase.auth.getSession();
             setIsAuthenticated(Boolean(session));
             setIsCheckingSession(false);
         }
-
         void checkSession();
-
-        const {
-            data: {subscription},
-        } = supabase.auth.onAuthStateChange((_event, session) => {
+        const {data: {subscription}} = supabase.auth.onAuthStateChange((_event, session) => {
             setIsAuthenticated(Boolean(session));
             setIsCheckingSession(false);
         });
-
         return () => subscription.unsubscribe();
     }, []);
 
@@ -2711,100 +2996,56 @@ function AdminPanel() {
             return;
         }
 
-        async function loadAdminAppointments() {
+        async function loadAdminData() {
             setIsLoading(true);
             setPanelError("");
-
             const [
                 {data: appointmentData, error: appointmentError},
                 {data: blockData, error: blockLoadError},
                 {data: serviceData, error: serviceLoadError},
                 {data: hoursData, error: hoursLoadError},
             ] = await Promise.all([
-                supabase
-                    .from("appointments")
-                    .select(
-                        "id, client_name, client_phone, client_email, service_name, appointment_date, start_time, duration_minutes, status, created_at",
-                    )
+                supabase.from("appointments")
+                    .select("id, client_name, client_phone, client_email, service_name, appointment_date, start_time, duration_minutes, status, created_at")
                     .order("appointment_date", {ascending: true})
                     .order("start_time", {ascending: true}),
-                supabase
-                    .from("schedule_blocks")
-                    .select(
-                        "id, block_date, start_time, end_time, reason, created_at",
-                    )
+                supabase.from("schedule_blocks")
+                    .select("id, block_date, start_time, end_time, reason, created_at")
                     .order("block_date", {ascending: true})
                     .order("start_time", {ascending: true}),
-                supabase
-                    .from("services")
+                supabase.from("services")
                     .select("id, name, description, duration_minutes, price_cents, display_order")
                     .order("display_order", {ascending: true}),
-                supabase
-                    .from("business_hours")
+                supabase.from("business_hours")
                     .select("id, day_of_week, start_time, end_time")
                     .order("day_of_week", {ascending: true}),
             ]);
 
             if (appointmentError || blockLoadError || serviceLoadError || hoursLoadError) {
-                console.error(
-                    "Erro ao carregar painel:",
-                    appointmentError || blockLoadError || serviceLoadError || hoursLoadError,
-                );
-                setPanelError(
-                    "Não foi possível carregar os dados do painel. Tente atualizar a página.",
-                );
+                console.error("Erro ao carregar painel:", appointmentError || blockLoadError || serviceLoadError || hoursLoadError);
+                setPanelError("Não foi possível carregar os dados do painel. Atualize a página.");
                 setIsLoading(false);
                 return;
             }
 
-            setAppointments(
-                (appointmentData ?? []) as AdminAppointment[],
-            );
+            setAppointments((appointmentData ?? []) as AdminAppointment[]);
             setAdminBlocks((blockData ?? []) as AdminScheduleBlock[]);
             setAdminServices((serviceData ?? []) as AdminServiceSetting[]);
-            setAdminBusinessHours(
-                ((hoursData ?? []) as AdminBusinessHour[]).map((hours) => ({
-                    ...hours,
-                    start_time: String(hours.start_time).slice(0, 5),
-                    end_time: String(hours.end_time).slice(0, 5),
-                })),
-            );
-            if (serviceData?.length) {
-                setManualServiceName(serviceData[0].name);
-            }
+            setAdminBusinessHours(((hoursData ?? []) as AdminBusinessHour[]).map((hours) => ({
+                ...hours,
+                start_time: String(hours.start_time).slice(0, 5),
+                end_time: String(hours.end_time).slice(0, 5),
+            })));
+            if (serviceData?.length) setManualServiceName(serviceData[0].name);
             setIsLoading(false);
         }
 
-        void loadAdminAppointments();
-
-        const appointmentsChannel = supabase
-            .channel("admin-appointments-updates")
-            .on(
-                "postgres_changes",
-                {
-                    event: "*",
-                    schema: "public",
-                    table: "appointments",
-                },
-                () => {
-                    void loadAdminAppointments();
-                },
-            )
+        void loadAdminData();
+        const appointmentsChannel = supabase.channel("admin-appointments-updates")
+            .on("postgres_changes", {event: "*", schema: "public", table: "appointments"}, () => void loadAdminData())
             .subscribe();
-
-        const blocksChannel = supabase
-            .channel("admin-schedule-blocks-updates")
-            .on(
-                "postgres_changes",
-                {
-                    event: "*",
-                    schema: "public",
-                    table: "schedule_blocks",
-                },
-                () => {
-                    void loadAdminAppointments();
-                },
-            )
+        const blocksChannel = supabase.channel("admin-schedule-blocks-updates")
+            .on("postgres_changes", {event: "*", schema: "public", table: "schedule_blocks"}, () => void loadAdminData())
             .subscribe();
 
         return () => {
@@ -2817,19 +3058,12 @@ function AdminPanel() {
         event.preventDefault();
         setLoginError("");
         setIsLoggingIn(true);
-
-        const {error} = await supabase.auth.signInWithPassword({
-            email: email.trim(),
-            password,
-        });
-
+        const {error} = await supabase.auth.signInWithPassword({email: email.trim(), password});
         if (error) {
-            console.error("Erro de login:", error);
             setLoginError("E-mail ou senha incorretos.");
             setIsLoggingIn(false);
             return;
         }
-
         setPassword("");
         setIsLoggingIn(false);
     }
@@ -2838,568 +3072,188 @@ function AdminPanel() {
         await supabase.auth.signOut();
     }
 
-    async function updateAppointmentStatus(
-        appointmentId: string,
-        status: AdminAppointment["status"],
-    ) {
-        setUpdatingId(appointmentId);
-        setPanelError("");
-
-        const {error} = await supabase
-            .from("appointments")
-            .update({status})
-            .eq("id", appointmentId);
-
-        if (error) {
-            console.error("Erro ao atualizar agendamento:", error);
-            setPanelError(
-                "Não foi possível atualizar o agendamento. Tente novamente.",
-            );
-            setUpdatingId("");
-            return;
-        }
-
-        setAppointments((currentAppointments) =>
-            currentAppointments.map((appointment) =>
-                appointment.id === appointmentId
-                    ? {...appointment, status}
-                    : appointment,
-            ),
-        );
-        setUpdatingId("");
-    }
-
-    function openAppointmentDetails(appointment: AdminAppointment) {
-        setSelectedAdminAppointment(appointment);
-        setRescheduleDate(appointment.appointment_date);
-        setRescheduleTime(String(appointment.start_time).slice(0, 5));
-        setRescheduleError("");
-    }
-
-    function closeAppointmentDetails() {
-        if (isRescheduling) {
-            return;
-        }
-
-        setSelectedAdminAppointment(null);
-        setRescheduleError("");
-    }
-
-    function hasAppointmentConflict(
+    function appointmentConflicts(
         appointmentId: string,
         date: string,
         time: string,
         durationMinutes: number,
-        appointmentsToCheck: AdminAppointment[],
     ) {
-        const requestedStart = getMinutesFromTime(time);
-        const requestedEnd = requestedStart + durationMinutes;
-
-        return appointmentsToCheck.some((appointment) => {
-            if (
-                appointment.id === appointmentId ||
-                appointment.status === "cancelled" ||
-                appointment.appointment_date !== date
-            ) {
-                return false;
-            }
-
+        const start = getMinutesFromTime(time);
+        const end = start + durationMinutes;
+        const conflictsAppointment = appointments.some((appointment) => {
+            if (appointment.id === appointmentId || appointment.status === "cancelled" || appointment.appointment_date !== date) return false;
             const existingStart = getMinutesFromTime(appointment.start_time);
-            const existingEnd =
-                existingStart + appointment.duration_minutes;
-
-            return requestedStart < existingEnd && requestedEnd > existingStart;
+            return intervalsOverlap(start, end, existingStart, existingStart + appointment.duration_minutes);
         });
-    }
-
-    async function handleReschedule() {
-        if (!selectedAdminAppointment) {
-            return;
-        }
-
-        if (!rescheduleDate || !rescheduleTime) {
-            setRescheduleError("Escolha a nova data e o novo horário.");
-            return;
-        }
-
-        const selectedDateValue = new Date(`${rescheduleDate}T12:00:00`);
-        const todayValue = new Date();
-        todayValue.setHours(0, 0, 0, 0);
-
-        if (selectedDateValue.getTime() < todayValue.getTime()) {
-            setRescheduleError("Não é possível reagendar para uma data passada.");
-            return;
-        }
-
-        const rescheduleStart = getMinutesFromTime(rescheduleTime);
-        const rescheduleDay = selectedDateValue.getDay();
-        const lastRescheduleStartingTime =
-            rescheduleDay === 0 || rescheduleDay === 6 ? 13 * 60 : 19 * 60;
-
-        if (rescheduleStart < 7 * 60 || rescheduleStart > lastRescheduleStartingTime) {
-            setRescheduleError(
-                rescheduleDay === 0 || rescheduleDay === 6
-                    ? "Nos finais de semana, escolha um horário entre 07:00 e 13:00."
-                    : "Durante a semana, escolha um horário entre 07:00 e 19:00.",
-            );
-            return;
-        }
-
-        setIsRescheduling(true);
-        setRescheduleError("");
-
-        const {data: latestData, error: latestError} = await supabase
-            .from("appointments")
-            .select(
-                "id, client_name, client_phone, client_email, service_name, appointment_date, start_time, duration_minutes, status, created_at",
-            )
-            .neq("status", "cancelled");
-
-        if (latestError) {
-            console.error("Erro ao validar reagendamento:", latestError);
-            setRescheduleError(
-                "Não foi possível verificar os horários disponíveis.",
-            );
-            setIsRescheduling(false);
-            return;
-        }
-
-        const latestAppointments =
-            (latestData ?? []) as AdminAppointment[];
-
-        if (
-            hasAppointmentConflict(
-                selectedAdminAppointment.id,
-                rescheduleDate,
-                rescheduleTime,
-                selectedAdminAppointment.duration_minutes,
-                latestAppointments,
-            )
-        ) {
-            setRescheduleError(
-                "Este horário entra em conflito com outro agendamento.",
-            );
-            setIsRescheduling(false);
-            return;
-        }
-
-        const {error} = await supabase
-            .from("appointments")
-            .update({
-                appointment_date: rescheduleDate,
-                start_time: rescheduleTime,
-            })
-            .eq("id", selectedAdminAppointment.id);
-
-        if (error) {
-            console.error("Erro ao reagendar:", error);
-            setRescheduleError(
-                "Não foi possível salvar o reagendamento. Tente novamente.",
-            );
-            setIsRescheduling(false);
-            return;
-        }
-
-        const updatedAppointment = {
-            ...selectedAdminAppointment,
-            appointment_date: rescheduleDate,
-            start_time: rescheduleTime,
-        };
-
-        setAppointments((currentAppointments) =>
-            currentAppointments.map((appointment) =>
-                appointment.id === selectedAdminAppointment.id
-                    ? updatedAppointment
-                    : appointment,
-            ),
+        const conflictsBlock = adminBlocks.some((block) =>
+            block.block_date === date &&
+            intervalsOverlap(start, end, getMinutesFromTime(block.start_time), getMinutesFromTime(block.end_time)),
         );
-        setSelectedAdminAppointment(updatedAppointment);
-        setAgendaDate(rescheduleDate);
-        setRescheduleError("");
-        setIsRescheduling(false);
+        return conflictsAppointment || conflictsBlock;
     }
 
-    function updateAdminServiceField(
-        serviceId: number,
-        field: "name" | "price_cents" | "duration_minutes",
-        value: string,
-    ) {
-        setAdminServices((current) =>
-            current.map((service) =>
-                service.id === serviceId
-                    ? {
-                        ...service,
-                        [field]: field === "name" ? value : Math.max(0, Number(value)),
-                    }
-                    : service,
-            ),
-        );
-    }
-
-    async function saveAdminService(service: AdminServiceSetting) {
-        setSettingsError("");
-        setSettingsSuccess("");
-
-        if (service.name.trim().length < 2) {
-            setSettingsError("O nome do serviço precisa ter pelo menos 2 caracteres.");
-            return;
-        }
-        if (service.price_cents < 0 || service.duration_minutes <= 0) {
-            setSettingsError("Informe um preço válido e uma duração maior que zero.");
-            return;
-        }
-
-        setSavingServiceId(service.id);
-        const {error} = await supabase
-            .from("services")
-            .update({
-                name: service.name.trim(),
-                price_cents: Math.round(service.price_cents),
-                duration_minutes: Math.round(service.duration_minutes),
-            })
-            .eq("id", service.id);
-
-        if (error) {
-            console.error("Erro ao salvar serviço:", error);
-            setSettingsError("Não foi possível salvar o serviço. Verifique se o nome não está repetido.");
-        } else {
-            setAdminServices((current) =>
-                current.map((item) =>
-                    item.id === service.id
-                        ? {...service, name: service.name.trim()}
-                        : item,
-                ),
-            );
-            setSettingsSuccess(`Serviço “${service.name.trim()}” atualizado com sucesso.`);
-        }
-        setSavingServiceId(null);
-    }
-
-    function updateAdminHoursField(
-        hoursId: number,
-        field: "start_time" | "end_time",
-        value: string,
-    ) {
-        setAdminBusinessHours((current) =>
-            current.map((hours) =>
-                hours.id === hoursId ? {...hours, [field]: value} : hours,
-            ),
-        );
-    }
-
-    async function saveAdminHours(hours: AdminBusinessHour) {
-        setSettingsError("");
-        setSettingsSuccess("");
-
-        if (!hours.start_time || !hours.end_time || hours.start_time >= hours.end_time) {
-            setSettingsError("O horário final deve ser posterior ao horário inicial.");
-            return;
-        }
-
-        setSavingHoursId(hours.id);
-        const {error} = await supabase
-            .from("business_hours")
-            .update({start_time: hours.start_time, end_time: hours.end_time})
-            .eq("id", hours.id);
-
-        if (error) {
-            console.error("Erro ao salvar horário:", error);
-            setSettingsError("Não foi possível salvar o horário de atendimento.");
-        } else {
-            setSettingsSuccess(`${dayNames[hours.day_of_week]} atualizado com sucesso.`);
-        }
-        setSavingHoursId(null);
-    }
-
-    function resetManualAppointmentForm() {
-        setManualClientName("");
-        setManualClientPhone("");
-        setManualClientEmail("");
-        setManualServiceName(adminServices[0]?.name ?? fallbackServices[0].name);
-        setManualDate(formatDateForInput(new Date()));
-        setManualTime("07:00");
-        setManualError("");
-        setManualSuccess("");
-    }
-
-    async function createManualAppointment(
-        event: React.FormEvent<HTMLFormElement>,
-    ) {
+    async function createManualAppointment(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setManualError("");
         setManualSuccess("");
 
-        const selectedService = adminServices.find(
-            (service) => service.name === manualServiceName,
-        );
-
-        if (!selectedService) {
-            setManualError("Selecione um serviço válido.");
+        const service = adminServices.find((item) => item.name === manualServiceName);
+        if (!service) {
+            setManualError("Escolha um serviço válido.");
             return;
         }
-
-        if (!manualClientName.trim() || !manualClientPhone.trim()) {
-            setManualError("Preencha o nome e o telefone da cliente.");
+        if (manualClientName.trim().length < 3 || manualClientPhone.replace(/\D/g, "").length < 10) {
+            setManualError("Informe nome completo e telefone válido.");
             return;
         }
-
         if (!manualDate || !manualTime) {
             setManualError("Escolha a data e o horário.");
             return;
         }
-
-        const selectedDateValue = new Date(`${manualDate}T12:00:00`);
-        const todayValue = new Date();
-        todayValue.setHours(0, 0, 0, 0);
-
-        if (selectedDateValue.getTime() < todayValue.getTime()) {
-            setManualError("Não é possível agendar em uma data passada.");
-            return;
-        }
-
-        const requestedStart = getMinutesFromTime(manualTime);
-        const requestedEnd =
-            requestedStart + selectedService.duration_minutes;
-        const selectedDay = selectedDateValue.getDay();
-        const lastStartingMinutes =
-            selectedDay === 0 || selectedDay === 6 ? 13 * 60 : 19 * 60;
-
-        if (requestedStart < 7 * 60 || requestedStart > lastStartingMinutes) {
-            setManualError(
-                selectedDay === 0 || selectedDay === 6
-                    ? "Nos finais de semana, o último horário de início é 13:00."
-                    : "Durante a semana, o último horário de início é 19:00.",
-            );
+        if (appointmentConflicts("", manualDate, manualTime, service.duration_minutes)) {
+            setManualError("Este período entra em conflito com outro agendamento ou bloqueio.");
             return;
         }
 
         setIsSavingManualAppointment(true);
+        const {data, error} = await supabase.from("appointments").insert({
+            client_name: manualClientName.trim(),
+            client_phone: formatBrazilianPhone(manualClientPhone),
+            client_email: manualClientEmail.trim() || null,
+            service_name: service.name,
+            appointment_date: manualDate,
+            start_time: manualTime,
+            duration_minutes: service.duration_minutes,
+            status: "confirmed",
+        }).select("id, client_name, client_phone, client_email, service_name, appointment_date, start_time, duration_minutes, status, created_at").single();
 
-        const [
-            {data: latestAppointmentsData, error: appointmentsError},
-            {data: latestBlocksData, error: blocksError},
-        ] = await Promise.all([
-            supabase
-                .from("appointments")
-                .select(
-                    "id, client_name, client_phone, client_email, service_name, appointment_date, start_time, duration_minutes, status, created_at",
-                )
-                .eq("appointment_date", manualDate)
-                .neq("status", "cancelled"),
-            supabase
-                .from("schedule_blocks")
-                .select(
-                    "id, block_date, start_time, end_time, reason, created_at",
-                )
-                .eq("block_date", manualDate),
-        ]);
-
-        if (appointmentsError || blocksError) {
-            console.error(
-                "Erro ao validar novo agendamento:",
-                appointmentsError || blocksError,
-            );
-            setManualError(
-                "Não foi possível verificar a disponibilidade do horário.",
-            );
+        if (error || !data) {
+            console.error("Erro ao criar agendamento:", error);
+            setManualError("Não foi possível criar o agendamento.");
             setIsSavingManualAppointment(false);
             return;
         }
 
-        const latestAppointments =
-            (latestAppointmentsData ?? []) as AdminAppointment[];
-        const latestBlocks =
-            (latestBlocksData ?? []) as AdminScheduleBlock[];
-
-        const conflictsWithAppointment = latestAppointments.some(
-            (appointment) => {
-                const existingStart = getMinutesFromTime(
-                    appointment.start_time,
-                );
-                const existingEnd =
-                    existingStart + appointment.duration_minutes;
-
-                return (
-                    requestedStart < existingEnd &&
-                    requestedEnd > existingStart
-                );
-            },
-        );
-
-        const conflictsWithBlock = latestBlocks.some((block) => {
-            const blockStart = getMinutesFromTime(block.start_time);
-            const blockEnd = getMinutesFromTime(block.end_time);
-
-            return requestedStart < blockEnd && requestedEnd > blockStart;
-        });
-
-        if (conflictsWithAppointment || conflictsWithBlock) {
-            setManualError(
-                "Esse horário não está disponível para a duração do serviço escolhido.",
-            );
-            setIsSavingManualAppointment(false);
-            return;
-        }
-
-        const {data, error} = await supabase
-            .from("appointments")
-            .insert({
-                client_name: manualClientName.trim(),
-                client_phone: manualClientPhone.trim(),
-                client_email: manualClientEmail.trim() || null,
-                service_name: selectedService.name,
-                appointment_date: manualDate,
-                start_time: manualTime,
-                duration_minutes: selectedService.duration_minutes,
-                status: "confirmed",
-            })
-            .select(
-                "id, client_name, client_phone, client_email, service_name, appointment_date, start_time, duration_minutes, status, created_at",
-            )
-            .single();
-
-        if (error) {
-            console.error("Erro ao criar agendamento manual:", error);
-            setManualError(
-                "Não foi possível salvar o agendamento. Verifique os dados e tente novamente.",
-            );
-            setIsSavingManualAppointment(false);
-            return;
-        }
-
-        const createdAppointment = data as AdminAppointment;
-
-        setAppointments((current) =>
-            [...current, createdAppointment].sort((first, second) =>
-                `${first.appointment_date}${first.start_time}`.localeCompare(
-                    `${second.appointment_date}${second.start_time}`,
-                ),
-            ),
-        );
+        setAppointments((current) => [...current, data as AdminAppointment]);
+        setManualSuccess("Agendamento criado com sucesso.");
         setAgendaDate(manualDate);
-        setManualSuccess(
-            `Agendamento de ${createdAppointment.client_name} criado com sucesso.`,
-        );
         setManualClientName("");
         setManualClientPhone("");
         setManualClientEmail("");
         setIsSavingManualAppointment(false);
     }
 
-    async function createScheduleBlock(
-        event: React.FormEvent<HTMLFormElement>,
-    ) {
-        event.preventDefault();
-        setBlockError("");
-
-        if (!blockDate || !blockStartTime || !blockEndTime) {
-            setBlockError("Preencha a data e os horários do bloqueio.");
-            return;
-        }
-
-        const start = getMinutesFromTime(blockStartTime);
-        const end = getMinutesFromTime(blockEndTime);
-
-        if (end <= start) {
-            setBlockError(
-                "O horário final precisa ser posterior ao horário inicial.",
-            );
-            return;
-        }
-
-        const conflictsWithAppointment = appointments.some((appointment) => {
-            if (
-                appointment.status === "cancelled" ||
-                appointment.appointment_date !== blockDate
-            ) {
-                return false;
-            }
-
-            const appointmentStart = getMinutesFromTime(
-                appointment.start_time,
-            );
-            const appointmentEnd =
-                appointmentStart + appointment.duration_minutes;
-
-            return start < appointmentEnd && end > appointmentStart;
-        });
-
-        if (conflictsWithAppointment) {
-            setBlockError(
-                "Esse período possui um agendamento e não pode ser bloqueado.",
-            );
-            return;
-        }
-
-        const conflictsWithBlock = adminBlocks.some((block) => {
-            if (block.block_date !== blockDate) {
-                return false;
-            }
-
-            const existingStart = getMinutesFromTime(block.start_time);
-            const existingEnd = getMinutesFromTime(block.end_time);
-
-            return start < existingEnd && end > existingStart;
-        });
-
-        if (conflictsWithBlock) {
-            setBlockError("Esse período já possui outro bloqueio.");
-            return;
-        }
-
-        setIsSavingBlock(true);
-
-        const {data, error} = await supabase
-            .from("schedule_blocks")
-            .insert({
-                block_date: blockDate,
-                start_time: blockStartTime,
-                end_time: blockEndTime,
-                reason: blockReason.trim() || null,
-            })
-            .select(
-                "id, block_date, start_time, end_time, reason, created_at",
-            )
-            .single();
-
-        if (error) {
-            console.error("Erro ao criar bloqueio:", error);
-            setBlockError("Não foi possível bloquear esse horário.");
-            setIsSavingBlock(false);
-            return;
-        }
-
-        setAdminBlocks((current) =>
-            [...current, data as AdminScheduleBlock].sort((first, second) =>
-                `${first.block_date}${first.start_time}`.localeCompare(
-                    `${second.block_date}${second.start_time}`,
-                ),
-            ),
-        );
-        setAgendaDate(blockDate);
-        setBlockReason("");
-        setBlockError("");
-        setIsSavingBlock(false);
+    function openAppointmentDetails(appointment: AdminAppointment) {
+        setSelectedAdminAppointment(appointment);
+        setEditAppointmentName(appointment.client_name);
+        setEditAppointmentPhone(appointment.client_phone);
+        setEditAppointmentEmail(appointment.client_email ?? "");
+        setEditAppointmentService(appointment.service_name);
+        setEditAppointmentDate(appointment.appointment_date);
+        setEditAppointmentTime(String(appointment.start_time).slice(0, 5));
+        setAppointmentEditError("");
     }
 
-    async function deleteScheduleBlock(blockId: string) {
-        setBlockError("");
-
-        const {error} = await supabase
-            .from("schedule_blocks")
-            .delete()
-            .eq("id", blockId);
-
-        if (error) {
-            console.error("Erro ao remover bloqueio:", error);
-            setBlockError("Não foi possível remover o bloqueio.");
+    async function saveAppointmentChanges() {
+        if (!selectedAdminAppointment) return;
+        const service = adminServices.find((item) => item.name === editAppointmentService);
+        if (!service) {
+            setAppointmentEditError("Escolha um serviço válido.");
+            return;
+        }
+        if (editAppointmentName.trim().length < 3 || editAppointmentPhone.replace(/\D/g, "").length < 10) {
+            setAppointmentEditError("Informe nome completo e telefone válido.");
+            return;
+        }
+        if (appointmentConflicts(selectedAdminAppointment.id, editAppointmentDate, editAppointmentTime, service.duration_minutes)) {
+            setAppointmentEditError("O novo período entra em conflito com outro agendamento ou bloqueio.");
             return;
         }
 
-        setAdminBlocks((current) =>
-            current.filter((block) => block.id !== blockId),
-        );
+        setIsSavingAppointment(true);
+        const updates = {
+            client_name: editAppointmentName.trim(),
+            client_phone: formatBrazilianPhone(editAppointmentPhone),
+            client_email: editAppointmentEmail.trim() || null,
+            service_name: service.name,
+            appointment_date: editAppointmentDate,
+            start_time: editAppointmentTime,
+            duration_minutes: service.duration_minutes,
+        };
+        const {error} = await supabase.from("appointments").update(updates).eq("id", selectedAdminAppointment.id);
+        if (error) {
+            console.error("Erro ao editar agendamento:", error);
+            setAppointmentEditError("Não foi possível salvar as alterações.");
+            setIsSavingAppointment(false);
+            return;
+        }
+
+        const updated = {...selectedAdminAppointment, ...updates};
+        setAppointments((current) => current.map((item) => item.id === updated.id ? updated : item));
+        setSelectedAdminAppointment(updated);
+        setAgendaDate(editAppointmentDate);
+        setIsSavingAppointment(false);
+        setAppointmentEditError("");
     }
+
+    async function cancelAppointment(appointment: AdminAppointment) {
+        if (!window.confirm(`Cancelar o agendamento de ${appointment.client_name}?`)) return;
+        const {error} = await supabase.from("appointments").update({status: "cancelled"}).eq("id", appointment.id);
+        if (error) {
+            setPanelError("Não foi possível cancelar o agendamento.");
+            return;
+        }
+        setAppointments((current) => current.map((item) => item.id === appointment.id ? {...item, status: "cancelled"} : item));
+        setSelectedAdminAppointment((current) => current?.id === appointment.id ? {...current, status: "cancelled"} : current);
+    }
+
+    async function deleteAppointment(appointment: AdminAppointment) {
+        if (!window.confirm(`Excluir definitivamente o agendamento de ${appointment.client_name}?`)) return;
+        const {error} = await supabase.from("appointments").delete().eq("id", appointment.id);
+        if (error) {
+            setAppointmentEditError("Não foi possível excluir o agendamento.");
+            return;
+        }
+        setAppointments((current) => current.filter((item) => item.id !== appointment.id));
+        setSelectedAdminAppointment(null);
+    }
+
+    const clients = useMemo<AdminClient[]>(() => {
+        const grouped = new Map<string, AdminAppointment[]>();
+        appointments.forEach((appointment) => {
+            const digits = appointment.client_phone.replace(/\D/g, "");
+            const key = digits || appointment.client_name.trim().toLowerCase().replace(/\s+/g, "-");
+            grouped.set(key, [...(grouped.get(key) ?? []), appointment]);
+        });
+        const now = new Date();
+        return Array.from(grouped.entries()).map(([key, clientAppointments]) => {
+            const ordered = [...clientAppointments].sort((a, b) => getAppointmentDateTime(b).getTime() - getAppointmentDateTime(a).getTime());
+            const reference = ordered[0];
+            const completed = ordered.filter((item) => item.status !== "cancelled" && getAppointmentDateTime(item).getTime() < now.getTime());
+            const upcoming = ordered.filter((item) => item.status !== "cancelled" && getAppointmentDateTime(item).getTime() >= now.getTime())
+                .sort((a, b) => getAppointmentDateTime(a).getTime() - getAppointmentDateTime(b).getTime());
+            return {
+                key,
+                name: reference.client_name,
+                phone: reference.client_phone,
+                email: reference.client_email ?? "",
+                appointments: ordered,
+                lastAppointment: completed[0] ?? null,
+                nextAppointment: upcoming[0] ?? null,
+            };
+        }).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    }, [appointments]);
+
+    const filteredClients = useMemo(() => {
+        const query = clientSearch.trim().toLowerCase();
+        const digits = clientSearch.replace(/\D/g, "");
+        if (!query) return clients;
+        return clients.filter((client) =>
+            client.name.toLowerCase().includes(query) ||
+            client.phone.toLowerCase().includes(query) ||
+            Boolean(digits && client.phone.replace(/\D/g, "").includes(digits)),
+        );
+    }, [clients, clientSearch]);
 
     function openClientEditor(client: AdminClient) {
         setEditingClient(client);
@@ -3409,339 +3263,236 @@ function AdminPanel() {
         setClientEditError("");
     }
 
-    function closeClientEditor() {
-        if (isSavingClient) {
+    async function saveClientChanges() {
+        if (!editingClient) return;
+        if (editClientName.trim().length < 3 || editClientPhone.replace(/\D/g, "").length < 10) {
+            setClientEditError("Informe nome completo e telefone válido.");
             return;
         }
-
-        setEditingClient(null);
-        setClientEditError("");
-    }
-
-    async function saveClientChanges(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-
-        if (!editingClient) {
-            return;
-        }
-
-        const normalizedName = editClientName.trim().replace(/\s+/g, " ");
-        const normalizedPhone = formatBrazilianPhone(editClientPhone);
-        const phoneDigits = normalizedPhone.replace(/\D/g, "");
-        const normalizedEmail = editClientEmail.trim();
-
-        if (normalizedName.length < 3) {
-            setClientEditError("Informe o nome completo da cliente.");
-            return;
-        }
-
-        if (phoneDigits.length < 10 || phoneDigits.length > 11) {
-            setClientEditError("Informe um telefone válido com DDD.");
-            return;
-        }
-
         setIsSavingClient(true);
-        setClientEditError("");
-
-        const appointmentIds = editingClient.appointments.map(
-            (appointment) => appointment.id,
-        );
-
-        const {error} = await supabase
-            .from("appointments")
-            .update({
-                client_name: normalizedName,
-                client_phone: normalizedPhone,
-                client_email: normalizedEmail || null,
-            })
-            .in("id", appointmentIds);
-
+        const ids = editingClient.appointments.map((item) => item.id);
+        const normalizedPhone = formatBrazilianPhone(editClientPhone);
+        const {error} = await supabase.from("appointments").update({
+            client_name: editClientName.trim(),
+            client_phone: normalizedPhone,
+            client_email: editClientEmail.trim() || null,
+        }).in("id", ids);
         if (error) {
-            console.error("Erro ao atualizar cadastro da cliente:", error);
-            setClientEditError(
-                "Não foi possível atualizar o cadastro. Tente novamente.",
-            );
+            setClientEditError("Não foi possível atualizar o cadastro.");
             setIsSavingClient(false);
             return;
         }
-
-        setAppointments((currentAppointments) =>
-            currentAppointments.map((appointment) =>
-                appointmentIds.includes(appointment.id)
-                    ? {
-                        ...appointment,
-                        client_name: normalizedName,
-                        client_phone: normalizedPhone,
-                        client_email: normalizedEmail || null,
-                    }
-                    : appointment,
-            ),
-        );
-
-        setSelectedClient((currentClient) =>
-            currentClient?.key === editingClient.key
-                ? {
-                    ...currentClient,
-                    name: normalizedName,
-                    phone: normalizedPhone,
-                    email: normalizedEmail,
-                    appointments: currentClient.appointments.map(
-                        (appointment) => ({
-                            ...appointment,
-                            client_name: normalizedName,
-                            client_phone: normalizedPhone,
-                            client_email: normalizedEmail || null,
-                        }),
-                    ),
-                }
-                : currentClient,
-        );
-
+        setAppointments((current) => current.map((item) => ids.includes(item.id) ? {
+            ...item,
+            client_name: editClientName.trim(),
+            client_phone: normalizedPhone,
+            client_email: editClientEmail.trim() || null,
+        } : item));
         setEditingClient(null);
         setIsSavingClient(false);
     }
 
-    const clients = useMemo<AdminClient[]>(() => {
-        const groupedClients = new Map<string, AdminAppointment[]>();
-
-        appointments.forEach((appointment) => {
-            const phoneDigits = appointment.client_phone.replace(/\D/g, "");
-            const fallbackKey = appointment.client_name
-                .trim()
-                .toLowerCase()
-                .replace(/\s+/g, "-");
-            const key = phoneDigits || fallbackKey;
-            const current = groupedClients.get(key) ?? [];
-            current.push(appointment);
-            groupedClients.set(key, current);
-        });
-
-        const now = new Date();
-
-        return Array.from(groupedClients.entries())
-            .map(([key, clientAppointments]) => {
-                const ordered = [...clientAppointments].sort(
-                    (first, second) =>
-                        getAppointmentDateTime(second).getTime() -
-                        getAppointmentDateTime(first).getTime(),
-                );
-                const reference = ordered[0];
-                const completedOrPast = ordered.filter(
-                    (appointment) =>
-                        appointment.status !== "cancelled" &&
-                        getAppointmentDateTime(appointment).getTime() <
-                        now.getTime(),
-                );
-                const upcoming = [...ordered]
-                    .filter(
-                        (appointment) =>
-                            appointment.status !== "cancelled" &&
-                            getAppointmentDateTime(appointment).getTime() >=
-                            now.getTime(),
-                    )
-                    .sort(
-                        (first, second) =>
-                            getAppointmentDateTime(first).getTime() -
-                            getAppointmentDateTime(second).getTime(),
-                    );
-
-                return {
-                    key,
-                    name: reference.client_name,
-                    phone: reference.client_phone,
-                    email: reference.client_email ?? "",
-                    appointments: ordered,
-                    lastAppointment: completedOrPast[0] ?? null,
-                    nextAppointment: upcoming[0] ?? null,
-                };
-            })
-            .sort((first, second) =>
-                first.name.localeCompare(second.name, "pt-BR"),
-            );
-    }, [appointments]);
-
-    const filteredClients = useMemo(() => {
-        const normalizedSearch = clientSearch.trim().toLowerCase();
-        const searchDigits = clientSearch.replace(/\D/g, "");
-
-        if (!normalizedSearch) {
-            return clients;
+    async function deleteClient(client: AdminClient) {
+        if (!window.confirm(`Excluir ${client.name} e todo o histórico de agendamentos dessa cliente?`)) return;
+        setDeletingClientKey(client.key);
+        const ids = client.appointments.map((item) => item.id);
+        const {error} = await supabase.from("appointments").delete().in("id", ids);
+        if (error) {
+            setPanelError("Não foi possível excluir a cliente.");
+            setDeletingClientKey("");
+            return;
         }
-
-        return clients.filter(
-            (client) =>
-                client.name.toLowerCase().includes(normalizedSearch) ||
-                client.phone.toLowerCase().includes(normalizedSearch) ||
-                (searchDigits &&
-                    client.phone.replace(/\D/g, "").includes(searchDigits)),
-        );
-    }, [clientSearch, clients]);
-
-    const filteredAppointments = useMemo(() => {
-        const normalizedSearch = search.trim().toLowerCase();
-
-        return appointments.filter((appointment) => {
-            const matchesSearch =
-                !normalizedSearch ||
-                appointment.client_name.toLowerCase().includes(normalizedSearch) ||
-                appointment.client_phone.includes(normalizedSearch) ||
-                appointment.service_name.toLowerCase().includes(normalizedSearch);
-
-            const matchesDate =
-                !dateFilter || appointment.appointment_date === dateFilter;
-
-            const matchesStatus =
-                statusFilter === "all" ||
-                (statusFilter === "active" &&
-                    appointment.status !== "cancelled") ||
-                appointment.status === statusFilter;
-
-            return matchesSearch && matchesDate && matchesStatus;
-        });
-    }, [appointments, dateFilter, search, statusFilter]);
+        setAppointments((current) => current.filter((item) => !ids.includes(item.id)));
+        setDeletingClientKey("");
+    }
 
     const weekDates = useMemo(() => {
         const selected = new Date(`${agendaDate}T12:00:00`);
-        const dayOfWeek = selected.getDay();
-        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const mondayOffset = selected.getDay() === 0 ? -6 : 1 - selected.getDay();
         const monday = addDaysToInputDate(agendaDate, mondayOffset);
-
-        return Array.from({length: 7}, (_, index) =>
-            addDaysToInputDate(monday, index),
-        );
+        return Array.from({length: 7}, (_, index) => addDaysToInputDate(monday, index));
     }, [agendaDate]);
 
-    const weekStartLabel = formatAdminDate(weekDates[0]);
-    const weekEndLabel = formatAdminDate(weekDates[6]);
+    const matchesAdminFilters = (appointment: AdminAppointment) => {
+        const query = search.trim().toLowerCase();
+        const matchesSearch = !query ||
+            appointment.client_name.toLowerCase().includes(query) ||
+            appointment.client_phone.toLowerCase().includes(query) ||
+            appointment.service_name.toLowerCase().includes(query);
+        const matchesStatus = statusFilter === "all" ||
+            (statusFilter === "active" && appointment.status !== "cancelled") ||
+            appointment.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    };
 
-    const agendaBlocks = useMemo(
-        () =>
-            adminBlocks
-                .filter((block) => block.block_date === agendaDate)
-                .sort(
-                    (first, second) =>
-                        getMinutesFromTime(first.start_time) -
-                        getMinutesFromTime(second.start_time),
-                ),
-        [adminBlocks, agendaDate],
-    );
+    const agendaAppointments = useMemo(() =>
+            appointments.filter((item) => item.appointment_date === agendaDate && matchesAdminFilters(item))
+                .sort((a, b) => getMinutesFromTime(a.start_time) - getMinutesFromTime(b.start_time)),
+        [appointments, agendaDate, search, statusFilter]);
 
-    const agendaAppointments = useMemo(() => {
-        const normalizedSearch = search.trim().toLowerCase();
-
-        return appointments
-            .filter((appointment) => {
-                const matchesDate =
-                    appointment.appointment_date === agendaDate;
-                const matchesSearch =
-                    !normalizedSearch ||
-                    appointment.client_name
-                        .toLowerCase()
-                        .includes(normalizedSearch) ||
-                    appointment.client_phone.includes(normalizedSearch) ||
-                    appointment.service_name
-                        .toLowerCase()
-                        .includes(normalizedSearch);
-                const matchesStatus =
-                    statusFilter === "all" ||
-                    (statusFilter === "active" &&
-                        appointment.status !== "cancelled") ||
-                    appointment.status === statusFilter;
-
-                return matchesDate && matchesSearch && matchesStatus;
-            })
-            .sort(
-                (first, second) =>
-                    getMinutesFromTime(first.start_time) -
-                    getMinutesFromTime(second.start_time),
-            );
-    }, [agendaDate, appointments, search, statusFilter]);
+    const weeklyAppointments = useMemo(() =>
+            appointments.filter((item) => weekDates.includes(item.appointment_date) && matchesAdminFilters(item))
+                .sort((a, b) => `${a.appointment_date}${a.start_time}`.localeCompare(`${b.appointment_date}${b.start_time}`)),
+        [appointments, weekDates, search, statusFilter]);
 
     const nextAppointment = useMemo(() => {
         const now = new Date();
-
-        return appointments
-            .filter(
-                (appointment) =>
-                    appointment.status !== "cancelled" &&
-                    getAppointmentDateTime(appointment).getTime() >=
-                    now.getTime(),
-            )
-            .sort(
-                (first, second) =>
-                    getAppointmentDateTime(first).getTime() -
-                    getAppointmentDateTime(second).getTime(),
-            )[0];
+        return appointments.filter((item) => item.status !== "cancelled" && getAppointmentDateTime(item).getTime() >= now.getTime())
+            .sort((a, b) => getAppointmentDateTime(a).getTime() - getAppointmentDateTime(b).getTime())[0];
     }, [appointments]);
 
-    if (isCheckingSession) {
-        return (
-            <main className="admin-page">
-                <style>{adminStyles}</style>
-                <div className="admin-login">
-                    <div className="admin-loading">Verificando acesso...</div>
+    const blockAvailableTimes = useMemo(() => {
+        const day = new Date(`${blockDate}T12:00:00`).getDay();
+        const lastStart = day === 0 || day === 6 ? 13 * 60 : 19 * 60;
+        const occupied = appointments.filter((item) => item.appointment_date === blockDate && item.status !== "cancelled")
+            .map((item) => {
+                const start = getMinutesFromTime(item.start_time);
+                return {start, end: start + item.duration_minutes};
+            });
+        const blocked = adminBlocks.filter((item) => item.block_date === blockDate)
+            .map((item) => ({start: getMinutesFromTime(item.start_time), end: getMinutesFromTime(item.end_time)}));
+        return Array.from({length: Math.floor((lastStart - 7 * 60) / 30) + 1}, (_, index) => 7 * 60 + index * 30)
+            .filter((start) => ![...occupied, ...blocked].some((interval) => intervalsOverlap(start, start + 30, interval.start, interval.end)))
+            .map(minutesToTime);
+    }, [appointments, adminBlocks, blockDate]);
+
+    useEffect(() => {
+        setSelectedBlockTimes((current) => current.filter((time) => blockAvailableTimes.includes(time)));
+    }, [blockAvailableTimes]);
+
+    async function saveSelectedBlocks() {
+        if (!selectedBlockTimes.length) {
+            setBlockError("Selecione pelo menos um horário.");
+            return;
+        }
+        setIsSavingBlock(true);
+        setBlockError("");
+        const rows = selectedBlockTimes.map((time) => ({
+            block_date: blockDate,
+            start_time: time,
+            end_time: minutesToTime(getMinutesFromTime(time) + 30),
+            reason: blockReason.trim() || null,
+        }));
+        const {data, error} = await supabase.from("schedule_blocks").insert(rows)
+            .select("id, block_date, start_time, end_time, reason, created_at");
+        if (error) {
+            console.error("Erro ao bloquear horários:", error);
+            setBlockError("Não foi possível bloquear os horários selecionados.");
+            setIsSavingBlock(false);
+            return;
+        }
+        setAdminBlocks((current) => [...current, ...((data ?? []) as AdminScheduleBlock[])]);
+        setSelectedBlockTimes([]);
+        setBlockReason("");
+        setIsSavingBlock(false);
+    }
+
+    async function deleteScheduleBlock(blockId: string) {
+        const {error} = await supabase.from("schedule_blocks").delete().eq("id", blockId);
+        if (error) {
+            setBlockError("Não foi possível remover o bloqueio.");
+            return;
+        }
+        setAdminBlocks((current) => current.filter((item) => item.id !== blockId));
+    }
+
+    function updateAdminServiceField(serviceId: number, field: "name" | "price_cents" | "duration_minutes", value: string) {
+        setAdminServices((current) => current.map((service) => service.id === serviceId ? {
+            ...service,
+            [field]: field === "name" ? value : Math.max(0, Number(value)),
+        } : service));
+    }
+
+    async function saveAdminService(service: AdminServiceSetting) {
+        setSettingsError("");
+        setSettingsSuccess("");
+        if (service.name.trim().length < 2 || service.duration_minutes <= 0 || service.price_cents < 0) {
+            setSettingsError("Confira o nome, o preço e a duração do serviço.");
+            return;
+        }
+        setSavingServiceId(service.id);
+        const {error} = await supabase.from("services").update({
+            name: service.name.trim(),
+            price_cents: Math.round(service.price_cents),
+            duration_minutes: Math.round(service.duration_minutes),
+        }).eq("id", service.id);
+        if (error) setSettingsError("Não foi possível salvar o serviço.");
+        else setSettingsSuccess(`Serviço “${service.name.trim()}” atualizado.`);
+        setSavingServiceId(null);
+    }
+
+    function updateAdminHoursField(hoursId: number, field: "start_time" | "end_time", value: string) {
+        setAdminBusinessHours((current) => current.map((hours) => hours.id === hoursId ? {...hours, [field]: value} : hours));
+    }
+
+    async function saveAdminHours(hours: AdminBusinessHour) {
+        setSettingsError("");
+        setSettingsSuccess("");
+        setSavingHoursId(hours.id);
+        const {error} = await supabase.from("business_hours").update({
+            start_time: hours.start_time,
+            end_time: hours.end_time,
+        }).eq("id", hours.id);
+        if (error) setSettingsError("Não foi possível salvar os horários.");
+        else setSettingsSuccess(`${dayNames[hours.day_of_week]} atualizado.`);
+        setSavingHoursId(null);
+    }
+
+    const renderAppointmentCard = (appointment: AdminAppointment) => (
+        <article
+            key={appointment.id}
+            className={`admin-booking-card${appointment.status === "cancelled" ? " is-cancelled" : ""}`}
+            onClick={() => openAppointmentDetails(appointment)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") openAppointmentDetails(appointment);
+            }}
+        >
+            <div className="admin-booking-card__top">
+                <div>
+                    <span className="admin-booking-card__time">{String(appointment.start_time).slice(0, 5)}</span>
+                    <h3>{appointment.client_name}</h3>
                 </div>
-            </main>
-        );
+                <span className={`admin-status admin-status--${appointment.status}`}>{appointment.status === "cancelled" ? "Cancelado" : "Confirmado"}</span>
+            </div>
+            <div className="admin-booking-card__details">
+                <div><span>Data</span><strong>{formatAdminDate(appointment.appointment_date)}</strong></div>
+                <div><span>Serviço</span><strong>{appointment.service_name}</strong></div>
+                <div><span>Duração</span><strong>{appointment.duration_minutes} min</strong></div>
+                <div><span>Telefone</span><strong>{appointment.client_phone}</strong></div>
+            </div>
+            <div className="admin-booking-card__footer" onClick={(event) => event.stopPropagation()}>
+                <button type="button" onClick={() => openAppointmentDetails(appointment)}>Editar detalhes</button>
+                {appointment.status !== "cancelled" && <button type="button" onClick={() => void cancelAppointment(appointment)}>Cancelar</button>}
+                <a
+                    href={`https://wa.me/${normalizePhoneForWhatsApp(appointment.client_phone)}?text=${encodeURIComponent(`Olá, ${appointment.client_name}! Estou entrando em contato sobre seu agendamento de ${appointment.service_name}, no dia ${formatAdminDate(appointment.appointment_date)}, às ${String(appointment.start_time).slice(0, 5)}.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    WhatsApp
+                </a>
+            </div>
+        </article>
+    );
+
+    if (isCheckingSession) {
+        return <main className="admin-page"><style>{adminStyles + adminEnhancementStyles}</style><div className="admin-login"><div className="admin-loading">Verificando acesso...</div></div></main>;
     }
 
     if (!isAuthenticated) {
         return (
             <main className="admin-page">
-                <style>{adminStyles}</style>
+                <style>{adminStyles + adminEnhancementStyles}</style>
                 <div className="admin-login">
                     <form className="admin-login__card" onSubmit={handleLogin}>
-                        <div className="admin-login__brand">
-                            <span className="admin-login__symbol">MS</span>
-                            <div>
-                                <strong>Mirian Silva</strong>
-                                <span>Painel administrativo</span>
-                            </div>
-                        </div>
-
+                        <div className="admin-login__brand"><span className="admin-login__symbol">MS</span><div><strong>Mirian Silva</strong><span>Painel administrativo</span></div></div>
                         <h1>Acesso da Mirian</h1>
-                        <p>
-                            Entre com o e-mail e a senha cadastrados no
-                            Supabase.
-                        </p>
-
-                        {loginError && (
-                            <p className="admin-login__error">{loginError}</p>
-                        )}
-
-                        <div className="admin-field">
-                            <label htmlFor="admin-email">E-mail</label>
-                            <input
-                                id="admin-email"
-                                type="email"
-                                autoComplete="email"
-                                value={email}
-                                onChange={(event) => setEmail(event.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="admin-field">
-                            <label htmlFor="admin-password">Senha</label>
-                            <input
-                                id="admin-password"
-                                type="password"
-                                autoComplete="current-password"
-                                value={password}
-                                onChange={(event) =>
-                                    setPassword(event.target.value)
-                                }
-                                required
-                            />
-                        </div>
-
-                        <button
-                            className="admin-primary-button"
-                            type="submit"
-                            disabled={isLoggingIn}
-                        >
-                            {isLoggingIn ? "Entrando..." : "Entrar no painel"}
-                        </button>
+                        <p>Entre com o e-mail e a senha cadastrados no Supabase.</p>
+                        {loginError && <p className="admin-login__error">{loginError}</p>}
+                        <div className="admin-field"><label htmlFor="admin-email">E-mail</label><input id="admin-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required/></div>
+                        <div className="admin-field"><label htmlFor="admin-password">Senha</label><input id="admin-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required/></div>
+                        <button className="admin-primary-button" type="submit" disabled={isLoggingIn}>{isLoggingIn ? "Entrando..." : "Entrar no painel"}</button>
                     </form>
                 </div>
             </main>
@@ -3750,218 +3501,57 @@ function AdminPanel() {
 
     return (
         <main className="admin-page">
-            <style>{adminStyles}</style>
-
+            <style>{adminStyles + adminEnhancementStyles}</style>
             <section className="admin-panel">
                 <header className="admin-header">
-                    <div>
-                        <h1>Painel da Mirian</h1>
-                        <p>Gerencie os agendamentos recebidos pelo site.</p>
-                    </div>
-
-                    <button
-                        className="admin-secondary-button"
-                        type="button"
-                        onClick={handleLogout}
-                    >
-                        Sair
-                    </button>
+                    <div><h1>Painel da Mirian</h1><p>Gerencie os agendamentos recebidos pelo site.</p></div>
+                    <button className="admin-secondary-button" type="button" onClick={handleLogout}>Sair</button>
                 </header>
 
                 {nextAppointment && (
                     <div className="admin-next-appointment">
                         <span>Próximo atendimento</span>
-                        <strong>
-                            {nextAppointment.client_name} •{" "}
-                            {String(nextAppointment.start_time).slice(0, 5)}
-                        </strong>
-                        <small>
-                            {formatAdminDate(
-                                nextAppointment.appointment_date,
-                            )}{" "}
-                            — {nextAppointment.service_name}
-                        </small>
+                        <strong>{nextAppointment.client_name} • {String(nextAppointment.start_time).slice(0, 5)}</strong>
+                        <small>{formatAdminDate(nextAppointment.appointment_date)} — {nextAppointment.service_name}</small>
                     </div>
                 )}
 
-                <div className="admin-view-controls">
-                    <div className="admin-view-switch">
-                        <button
-                            type="button"
-                            className={
-                                adminView === "agenda" ? "is-active" : ""
-                            }
-                            onClick={() => setAdminView("agenda")}
-                        >
-                            Agenda do dia
-                        </button>
-                        <button
-                            type="button"
-                            className={
-                                adminView === "week" ? "is-active" : ""
-                            }
-                            onClick={() => setAdminView("week")}
-                        >
-                            Agenda semanal
-                        </button>
-                        <button
-                            type="button"
-                            className={
-                                adminView === "clients" ? "is-active" : ""
-                            }
-                            onClick={() => setAdminView("clients")}
-                        >
-                            Clientes
-                        </button>
-                        <button
-                            type="button"
-                            className={adminView === "settings" ? "is-active" : ""}
-                            onClick={() => setAdminView("settings")}
-                        >
-                            Configurações
-                        </button>
-                    </div>
-
-                    {(adminView === "agenda" || adminView === "week") && (
-                        <div className="admin-date-navigation">
-                            <button
-                                type="button"
-                                aria-label={
-                                    adminView === "week"
-                                        ? "Semana anterior"
-                                        : "Dia anterior"
-                                }
-                                onClick={() =>
-                                    setAgendaDate((current) =>
-                                        addDaysToInputDate(
-                                            current,
-                                            adminView === "week" ? -7 : -1,
-                                        ),
-                                    )
-                                }
-                            >
-                                ←
-                            </button>
-                            <div className="admin-selected-date">
-                                {adminView === "week"
-                                    ? `${weekStartLabel} até ${weekEndLabel}`
-                                    : formatAdminDate(agendaDate)}
-                            </div>
-                            <button
-                                type="button"
-                                aria-label={
-                                    adminView === "week"
-                                        ? "Próxima semana"
-                                        : "Próximo dia"
-                                }
-                                onClick={() =>
-                                    setAgendaDate((current) =>
-                                        addDaysToInputDate(
-                                            current,
-                                            adminView === "week" ? 7 : 1,
-                                        ),
-                                    )
-                                }
-                            >
-                                →
-                            </button>
-                            <button
-                                className="admin-today-button"
-                                type="button"
-                                onClick={() =>
-                                    setAgendaDate(formatDateForInput(new Date()))
-                                }
-                            >
-                                Hoje
-                            </button>
-                        </div>
-                    )}
+                <div className="admin-dashboard-cards">
+                    <button className={`admin-dashboard-card${adminView === "agenda" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("agenda")}><strong>Agenda do dia</strong><span>Veja todos os atendimentos do dia.</span></button>
+                    <button className={`admin-dashboard-card${adminView === "week" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("week")}><strong>Agenda semanal</strong><span>Atendimentos em ordem de dia e horário.</span></button>
+                    <button className={`admin-dashboard-card${adminView === "clients" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("clients")}><strong>Clientes</strong><span>Cadastros, histórico e indicadores.</span></button>
+                    <button className={`admin-dashboard-card${adminView === "settings" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("settings")}><strong>Configurações</strong><span>Serviços e horários do site.</span></button>
                 </div>
+
+                {panelError && <p className="admin-panel__error">{panelError}</p>}
 
                 {adminView === "settings" ? (
                     <section className="admin-settings">
-                        <div className="admin-settings__intro">
-                            <div>
-                                <span className="admin-settings__eyebrow">Configurações do site</span>
-                                <h2>Serviços e horários</h2>
-                                <p>As alterações salvas aqui aparecem no agendamento das clientes.</p>
-                            </div>
-                        </div>
-
-                        {settingsError && (
-                            <p className="admin-settings__message admin-settings__message--error">{settingsError}</p>
-                        )}
-                        {settingsSuccess && (
-                            <p className="admin-settings__message admin-settings__message--success">{settingsSuccess}</p>
-                        )}
-
+                        <div className="admin-settings__intro"><div><span className="admin-settings__eyebrow">Configurações do site</span><h2>Serviços e horários</h2><p>As alterações salvas aqui aparecem no agendamento das clientes.</p></div></div>
+                        {settingsError && <p className="admin-settings__message admin-settings__message--error">{settingsError}</p>}
+                        {settingsSuccess && <p className="admin-settings__message admin-settings__message--success">{settingsSuccess}</p>}
                         <div className="admin-settings__section">
-                            <div className="admin-settings__section-header">
-                                <h3>Serviços</h3>
-                                <p>Edite o nome, o preço e a duração de cada atendimento.</p>
-                            </div>
+                            <div className="admin-settings__section-header"><h3>Serviços</h3><p>Edite nome, preço e duração.</p></div>
                             <div className="admin-settings__list">
                                 {adminServices.map((service) => (
                                     <article className="admin-settings__service" key={service.id}>
-                                        <label>
-                                            Nome do serviço
-                                            <input
-                                                value={service.name}
-                                                onChange={(event) => updateAdminServiceField(service.id, "name", event.target.value)}
-                                            />
-                                        </label>
-                                        <label>
-                                            Preço (R$)
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="0.01"
-                                                value={(service.price_cents / 100).toFixed(2)}
-                                                onChange={(event) => updateAdminServiceField(service.id, "price_cents", String(Math.round(Number(event.target.value) * 100)))}
-                                            />
-                                        </label>
-                                        <label>
-                                            Duração (minutos)
-                                            <input
-                                                type="number"
-                                                min="1"
-                                                step="5"
-                                                value={service.duration_minutes}
-                                                onChange={(event) => updateAdminServiceField(service.id, "duration_minutes", event.target.value)}
-                                            />
-                                        </label>
-                                        <button type="button" disabled={savingServiceId === service.id}
-                                                onClick={() => void saveAdminService(service)}>
-                                            {savingServiceId === service.id ? "Salvando..." : "Salvar"}
-                                        </button>
+                                        <label>Nome do serviço<input value={service.name} onChange={(event) => updateAdminServiceField(service.id, "name", event.target.value)}/></label>
+                                        <label>Preço (R$)<input type="number" min="0" step="0.01" value={(service.price_cents / 100).toFixed(2)} onChange={(event) => updateAdminServiceField(service.id, "price_cents", String(Math.round(Number(event.target.value) * 100)))}/></label>
+                                        <label>Duração (minutos)<input type="number" min="1" step="5" value={service.duration_minutes} onChange={(event) => updateAdminServiceField(service.id, "duration_minutes", event.target.value)}/></label>
+                                        <button type="button" disabled={savingServiceId === service.id} onClick={() => void saveAdminService(service)}>{savingServiceId === service.id ? "Salvando..." : "Salvar"}</button>
                                     </article>
                                 ))}
                             </div>
                         </div>
-
                         <div className="admin-settings__section">
-                            <div className="admin-settings__section-header">
-                                <h3>Horários de atendimento</h3>
-                                <p>Defina o início e o fim do expediente de cada dia.</p>
-                            </div>
+                            <div className="admin-settings__section-header"><h3>Horários das clientes</h3><p>Defina o primeiro e o último horário de início.</p></div>
                             <div className="admin-settings__list">
                                 {adminBusinessHours.map((hours) => (
                                     <article className="admin-settings__hours" key={hours.id}>
                                         <strong>{dayNames[hours.day_of_week]}</strong>
-                                        <label>
-                                            Início
-                                            <input type="time" value={hours.start_time}
-                                                   onChange={(event) => updateAdminHoursField(hours.id, "start_time", event.target.value)}/>
-                                        </label>
-                                        <label>
-                                            Final
-                                            <input type="time" value={hours.end_time}
-                                                   onChange={(event) => updateAdminHoursField(hours.id, "end_time", event.target.value)}/>
-                                        </label>
-                                        <button type="button" disabled={savingHoursId === hours.id}
-                                                onClick={() => void saveAdminHours(hours)}>
-                                            {savingHoursId === hours.id ? "Salvando..." : "Salvar"}
-                                        </button>
+                                        <label>Primeiro horário<input type="time" step="1800" value={hours.start_time} onChange={(event) => updateAdminHoursField(hours.id, "start_time", event.target.value)}/></label>
+                                        <label>Último início<input type="time" step="1800" value={hours.end_time} onChange={(event) => updateAdminHoursField(hours.id, "end_time", event.target.value)}/></label>
+                                        <button type="button" disabled={savingHoursId === hours.id} onClick={() => void saveAdminHours(hours)}>{savingHoursId === hours.id ? "Salvando..." : "Salvar"}</button>
                                     </article>
                                 ))}
                             </div>
@@ -3969,1371 +3559,134 @@ function AdminPanel() {
                     </section>
                 ) : adminView === "clients" ? (
                     <section className="admin-clients">
-                        <div className="admin-clients__header">
-                            <div>
-                                <span className="admin-clients__eyebrow">
-                                    Relacionamento
-                                </span>
-                                <h2>Clientes</h2>
-                                <p>
-                                    Consulte o histórico, o último atendimento e
-                                    os dados de contato de cada cliente.
-                                </p>
-                            </div>
-                            <div className="admin-clients__count">
-                                <strong>{clients.length}</strong>
-                                <span>
-                                    {clients.length === 1
-                                        ? "cliente cadastrada"
-                                        : "clientes cadastradas"}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="admin-clients__search">
-                            <label htmlFor="client-admin-search">
-                                Buscar por nome ou telefone
-                            </label>
-                            <input
-                                id="client-admin-search"
-                                type="search"
-                                placeholder="Ex.: Maria ou (48) 99999-9999"
-                                value={clientSearch}
-                                onChange={(event) =>
-                                    setClientSearch(event.target.value)
-                                }
-                            />
-                        </div>
-
-                        {filteredClients.length === 0 ? (
-                            <div className="admin-empty">
-                                Nenhuma cliente encontrada.
-                            </div>
-                        ) : (
-                            <div className="admin-clients__grid">
-                                {filteredClients.map((client) => (
-                                    <article
-                                        className="admin-client-card"
-                                        key={client.key}
-                                    >
-                                        <div className="admin-client-card__top">
-                                            <div className="admin-client-card__avatar">
-                                                {client.name
-                                                    .split(" ")
-                                                    .slice(0, 2)
-                                                    .map((part) => part[0])
-                                                    .join("")
-                                                    .toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <h3>{client.name}</h3>
-                                                <a
-                                                    href={`https://wa.me/${normalizePhoneForWhatsApp(
-                                                        client.phone,
-                                                    )}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
-                                                    {client.phone}
-                                                </a>
-                                                {client.email && (
-                                                    <span>{client.email}</span>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="admin-client-card__metrics">
-                                            <div>
-                                                <span>Atendimentos</span>
-                                                <strong>
-                                                    {
-                                                        client.appointments
-                                                            .length
-                                                    }
-                                                </strong>
-                                            </div>
-                                            <div>
-                                                <span>Último atendimento</span>
-                                                <strong>
-                                                    {client.lastAppointment
-                                                        ? formatAdminDate(
-                                                            client
-                                                                .lastAppointment
-                                                                .appointment_date,
-                                                        )
-                                                        : "Ainda não realizado"}
-                                                </strong>
-                                            </div>
-                                        </div>
-
-                                        {client.nextAppointment && (
-                                            <div className="admin-client-card__next">
-                                                <span>Próximo</span>
-                                                <strong>
-                                                    {formatAdminDate(
-                                                        client.nextAppointment
-                                                            .appointment_date,
-                                                    )}{" "}
-                                                    às{" "}
-                                                    {String(
-                                                        client.nextAppointment
-                                                            .start_time,
-                                                    ).slice(0, 5)}
-                                                </strong>
-                                            </div>
-                                        )}
-
+                        <div className="admin-clients__header"><div><span className="admin-clients__eyebrow">Clientes</span><h2>Cadastros das clientes</h2><p>Consulte histórico, edite ou exclua um cadastro.</p></div><div className="admin-clients__count"><strong>{clients.length}</strong><span>clientes cadastradas</span></div></div>
+                        <div className="admin-clients__search"><label>Buscar cliente<input value={clientSearch} onChange={(event) => setClientSearch(event.target.value)} placeholder="Nome ou telefone"/></label></div>
+                        <div className="admin-clients__grid">
+                            {filteredClients.map((client) => {
+                                const realized = client.appointments.filter((item) => item.status !== "cancelled" && getAppointmentDateTime(item).getTime() < Date.now()).length;
+                                const cancelled = client.appointments.filter((item) => item.status === "cancelled").length;
+                                return (
+                                    <article className="admin-client-card" key={client.key}>
+                                        <div className="admin-client-card__top"><div className="admin-client-card__avatar">{client.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}</div><div><h3>{client.name}</h3><a href={`https://wa.me/${normalizePhoneForWhatsApp(client.phone)}`} target="_blank" rel="noopener noreferrer">{client.phone}</a><span>{client.email || "E-mail não informado"}</span></div></div>
+                                        <div className="admin-client-card__metrics"><div><span>Atendimentos realizados</span><strong>{realized}</strong></div><div><span>Atendimentos cancelados</span><strong>{cancelled}</strong></div></div>
+                                        {client.nextAppointment && <div className="admin-client-card__next"><span>Próximo</span><strong>{formatAdminDate(client.nextAppointment.appointment_date)} às {String(client.nextAppointment.start_time).slice(0, 5)}</strong></div>}
                                         <div className="admin-client-card__actions">
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setSelectedClient(client)
-                                                }
-                                            >
-                                                Ver histórico
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="is-secondary"
-                                                onClick={() =>
-                                                    openClientEditor(client)
-                                                }
-                                            >
-                                                Editar cadastro
-                                            </button>
+                                            <button type="button" onClick={() => setSelectedClient(client)}>Ver histórico</button>
+                                            <button type="button" className="is-secondary" onClick={() => openClientEditor(client)}>Editar cadastro</button>
+                                            <button type="button" className="is-danger" disabled={deletingClientKey === client.key} onClick={() => void deleteClient(client)}>{deletingClientKey === client.key ? "Excluindo..." : "Excluir cliente"}</button>
                                         </div>
                                     </article>
-                                ))}
-                            </div>
-                        )}
+                                );
+                            })}
+                        </div>
                     </section>
                 ) : (
-                    <>
+                    <section className="admin-content-section">
                         <section className="admin-new-appointment">
-                            <div className="admin-new-appointment__header">
-                                <div>
-                                    <h2>Novo agendamento</h2>
-                                    <p>
-                                        Cadastre horários marcados por telefone,
-                                        WhatsApp ou pessoalmente.
-                                    </p>
-                                </div>
-                                <button
-                                    className="admin-new-appointment__toggle"
-                                    type="button"
-                                    onClick={() => {
-                                        if (showManualForm) {
-                                            resetManualAppointmentForm();
-                                        }
-                                        setShowManualForm((current) => !current);
-                                    }}
-                                >
-                                    {showManualForm ? "Fechar" : "+ Adicionar"}
-                                </button>
-                            </div>
-
+                            <div className="admin-new-appointment__header"><div><h2>Novo agendamento</h2><p>A Mirian pode cadastrar qualquer horário, inclusive fora do expediente das clientes.</p></div><button className="admin-new-appointment__toggle" type="button" onClick={() => setShowManualForm((current) => !current)}>{showManualForm ? "Fechar" : "+ Adicionar"}</button></div>
                             {showManualForm && (
-                                <form
-                                    className="admin-manual-form"
-                                    onSubmit={createManualAppointment}
-                                >
-                                    <label>
-                                        Nome da cliente
-                                        <input
-                                            type="text"
-                                            value={manualClientName}
-                                            onChange={(event) =>
-                                                setManualClientName(
-                                                    event.target.value,
-                                                )
-                                            }
-                                            placeholder="Nome completo"
-                                            required
-                                        />
-                                    </label>
-
-                                    <label>
-                                        Telefone
-                                        <input
-                                            type="tel"
-                                            value={manualClientPhone}
-                                            onChange={(event) =>
-                                                setManualClientPhone(
-                                                    event.target.value,
-                                                )
-                                            }
-                                            placeholder="(48) 99999-9999"
-                                            required
-                                        />
-                                    </label>
-
-                                    <label className="admin-manual-form__email">
-                                        E-mail
-                                        <input
-                                            type="email"
-                                            value={manualClientEmail}
-                                            onChange={(event) =>
-                                                setManualClientEmail(
-                                                    event.target.value,
-                                                )
-                                            }
-                                            placeholder="Opcional"
-                                        />
-                                    </label>
-
-                                    <label>
-                                        Serviço
-                                        <select
-                                            value={manualServiceName}
-                                            onChange={(event) =>
-                                                setManualServiceName(
-                                                    event.target.value,
-                                                )
-                                            }
-                                        >
-                                            {adminServices.map((service) => (
-                                                <option
-                                                    key={service.name}
-                                                    value={service.name}
-                                                >
-                                                    {service.name} —{" "}
-                                                    {service.duration_minutes} min
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </label>
-
-                                    <label>
-                                        Data
-                                        <input
-                                            type="date"
-                                            min={formatDateForInput(new Date())}
-                                            value={manualDate}
-                                            onChange={(event) =>
-                                                setManualDate(event.target.value)
-                                            }
-                                            required
-                                        />
-                                    </label>
-
-                                    <label>
-                                        Horário
-                                        <select
-                                            value={manualTime}
-                                            onChange={(event) =>
-                                                setManualTime(event.target.value)
-                                            }
-                                        >
-                                            {Array.from(
-                                                {length: 25},
-                                                (_, index) => {
-                                                    const totalMinutes =
-                                                        7 * 60 + index * 30;
-                                                    const hours = Math.floor(
-                                                        totalMinutes / 60,
-                                                    );
-                                                    const minutes =
-                                                        totalMinutes % 60;
-                                                    const value = `${String(
-                                                        hours,
-                                                    ).padStart(2, "0")}:${String(
-                                                        minutes,
-                                                    ).padStart(2, "0")}`;
-
-                                                    return (
-                                                        <option
-                                                            key={value}
-                                                            value={value}
-                                                        >
-                                                            {value}
-                                                        </option>
-                                                    );
-                                                },
-                                            )}
-                                        </select>
-                                    </label>
-
-                                    <div className="admin-manual-form__actions">
-                                        <button
-                                            className="admin-manual-form__save"
-                                            type="submit"
-                                            disabled={isSavingManualAppointment}
-                                        >
-                                            {isSavingManualAppointment
-                                                ? "Salvando..."
-                                                : "Criar agendamento"}
-                                        </button>
-                                        <button
-                                            className="admin-manual-form__cancel"
-                                            type="button"
-                                            onClick={() => {
-                                                resetManualAppointmentForm();
-                                                setShowManualForm(false);
-                                            }}
-                                        >
-                                            Cancelar
-                                        </button>
-                                    </div>
-
-                                    {manualError && (
-                                        <p className="admin-manual-form__error">
-                                            {manualError}
-                                        </p>
-                                    )}
-
-                                    {manualSuccess && (
-                                        <p className="admin-manual-form__success">
-                                            {manualSuccess}
-                                        </p>
-                                    )}
+                                <form className="admin-manual-form" onSubmit={createManualAppointment}>
+                                    <label>Nome da cliente<input value={manualClientName} onChange={(event) => setManualClientName(event.target.value)} required/></label>
+                                    <label>Telefone<input value={manualClientPhone} onChange={(event) => setManualClientPhone(event.target.value)} required/></label>
+                                    <label className="admin-manual-form__email">E-mail<input type="email" value={manualClientEmail} onChange={(event) => setManualClientEmail(event.target.value)}/></label>
+                                    <label>Serviço<select value={manualServiceName} onChange={(event) => setManualServiceName(event.target.value)}>{adminServices.map((service) => <option key={service.id} value={service.name}>{service.name} — {service.duration_minutes} min</option>)}</select></label>
+                                    <label>Data<input type="date" value={manualDate} onChange={(event) => setManualDate(event.target.value)} required/></label>
+                                    <label>Horário<select value={manualTime} onChange={(event) => setManualTime(event.target.value)}>{allDayTimes.map((time) => <option key={time} value={time}>{time}</option>)}</select></label>
+                                    <div className="admin-manual-form__actions"><button className="admin-manual-form__save" type="submit" disabled={isSavingManualAppointment}>{isSavingManualAppointment ? "Criando..." : "Criar agendamento"}</button><button className="admin-manual-form__cancel" type="button" onClick={() => setShowManualForm(false)}>Cancelar</button></div>
+                                    {manualError && <p className="admin-manual-form__error">{manualError}</p>}
+                                    {manualSuccess && <p className="admin-manual-form__success">{manualSuccess}</p>}
                                 </form>
                             )}
                         </section>
 
-                        <section className="admin-block-manager">
-                            <div className="admin-block-manager__header">
-                                <div>
-                                    <h2>Bloquear horário</h2>
-                                    <p>
-                                        Use para almoço, compromissos, folgas ou qualquer
-                                        período indisponível.
-                                    </p>
-                                </div>
+                        <div className="admin-section-heading">
+                            <div><h2>{adminView === "agenda" ? "Agenda do dia" : "Agenda da semana"}</h2><p>{adminView === "agenda" ? formatAdminDate(agendaDate) : `${formatAdminDate(weekDates[0])} até ${formatAdminDate(weekDates[6])}`}</p></div>
+                            <div className="admin-section-date-controls">
+                                <button type="button" onClick={() => setAgendaDate((current) => addDaysToInputDate(current, adminView === "week" ? -7 : -1))}>←</button>
+                                <input type="date" value={agendaDate} onChange={(event) => setAgendaDate(event.target.value)}/>
+                                <button type="button" onClick={() => setAgendaDate((current) => addDaysToInputDate(current, adminView === "week" ? 7 : 1))}>→</button>
+                                <button type="button" onClick={() => setAgendaDate(formatDateForInput(new Date()))}>Hoje</button>
                             </div>
-
-                            <form
-                                className="admin-block-form"
-                                onSubmit={createScheduleBlock}
-                            >
-                                <label>
-                                    Data
-                                    <input
-                                        type="date"
-                                        min={formatDateForInput(new Date())}
-                                        value={blockDate}
-                                        onChange={(event) =>
-                                            setBlockDate(event.target.value)
-                                        }
-                                        required
-                                    />
-                                </label>
-                                <label>
-                                    Início
-                                    <input
-                                        type="time"
-                                        value={blockStartTime}
-                                        onChange={(event) =>
-                                            setBlockStartTime(event.target.value)
-                                        }
-                                        required
-                                    />
-                                </label>
-                                <label>
-                                    Fim
-                                    <input
-                                        type="time"
-                                        value={blockEndTime}
-                                        onChange={(event) =>
-                                            setBlockEndTime(event.target.value)
-                                        }
-                                        required
-                                    />
-                                </label>
-                                <label>
-                                    Motivo
-                                    <input
-                                        type="text"
-                                        placeholder="Ex.: almoço ou compromisso"
-                                        value={blockReason}
-                                        onChange={(event) =>
-                                            setBlockReason(event.target.value)
-                                        }
-                                    />
-                                </label>
-                                <button type="submit" disabled={isSavingBlock}>
-                                    {isSavingBlock ? "Bloqueando..." : "Bloquear"}
-                                </button>
-                            </form>
-
-                            {blockError && (
-                                <p className="admin-block-error">{blockError}</p>
-                            )}
-
-                            {adminBlocks.filter(
-                                (block) => block.block_date === blockDate,
-                            ).length > 0 && (
-                                <div className="admin-block-list">
-                                    {adminBlocks
-                                        .filter(
-                                            (block) =>
-                                                block.block_date === blockDate,
-                                        )
-                                        .map((block) => (
-                                            <div
-                                                className="admin-block-item"
-                                                key={block.id}
-                                            >
-                                                <div>
-                                                    <strong>
-                                                        {String(
-                                                            block.start_time,
-                                                        ).slice(0, 5)}{" "}
-                                                        até{" "}
-                                                        {String(
-                                                            block.end_time,
-                                                        ).slice(0, 5)}
-                                                    </strong>
-                                                    <span>
-                                                {block.reason ||
-                                                    "Horário indisponível"}
-                                            </span>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        deleteScheduleBlock(block.id)
-                                                    }
-                                                >
-                                                    Remover
-                                                </button>
-                                            </div>
-                                        ))}
-                                </div>
-                            )}
-                        </section>
-
-                        <div className="admin-toolbar">
-                            <input
-                                type="search"
-                                placeholder="Buscar cliente, telefone ou serviço"
-                                value={search}
-                                onChange={(event) => setSearch(event.target.value)}
-                            />
-                            {adminView === "list" ? (
-                                <input
-                                    type="date"
-                                    value={dateFilter}
-                                    onChange={(event) =>
-                                        setDateFilter(event.target.value)
-                                    }
-                                />
-                            ) : (
-                                <input
-                                    type="date"
-                                    value={agendaDate}
-                                    onChange={(event) =>
-                                        setAgendaDate(event.target.value)
-                                    }
-                                />
-                            )}
-                            <select
-                                value={statusFilter}
-                                onChange={(event) =>
-                                    setStatusFilter(event.target.value)
-                                }
-                            >
-                                <option value="active">Ativos</option>
-                                <option value="all">Todos</option>
-                                <option value="confirmed">Confirmados</option>
-                                <option value="cancelled">Cancelados</option>
-                            </select>
                         </div>
 
-                        {panelError && (
-                            <p className="admin-panel__error">{panelError}</p>
-                        )}
+                        <div className="admin-toolbar">
+                            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar cliente, telefone ou serviço"/>
+                            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="confirmed">Confirmados</option><option value="active">Ativos</option><option value="cancelled">Cancelados</option><option value="all">Todos</option></select>
+                        </div>
 
-                        {isLoading ? (
-                            <div className="admin-loading">
-                                Carregando agendamentos...
-                            </div>
-                        ) : adminView === "agenda" ? (
-                            <div className="admin-agenda">
-                                <div className="admin-agenda__hours">
-                                    {Array.from({length: 14}, (_, index) => {
-                                        const hour = 7 + index;
-                                        return (
-                                            <div
-                                                className="admin-agenda__hour-label"
-                                                key={hour}
-                                            >
-                                                {String(hour).padStart(2, "0")}:00
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                <div className="admin-agenda__canvas">
-                                    {agendaAppointments.length === 0 &&
-                                        agendaBlocks.length === 0 && (
-                                            <div className="admin-agenda__empty">
-                                                Nenhum agendamento ou bloqueio para este
-                                                dia.
-                                            </div>
-                                        )}
-
-                                    {agendaBlocks.map((block) => {
-                                        const startMinutes =
-                                            getMinutesFromTime(block.start_time) -
-                                            7 * 60;
-                                        const duration =
-                                            getMinutesFromTime(block.end_time) -
-                                            getMinutesFromTime(block.start_time);
-                                        const top = Math.max(
-                                            0,
-                                            (startMinutes / 60) * 76,
-                                        );
-                                        const height = Math.max(
-                                            46,
-                                            (duration / 60) * 76 - 7,
-                                        );
-
-                                        return (
-                                            <article
-                                                className="admin-agenda__block"
-                                                key={block.id}
-                                                style={{
-                                                    top: `${top}px`,
-                                                    height: `${height}px`,
-                                                }}
-                                            >
-                                                <strong>
-                                                    Bloqueado •{" "}
-                                                    {String(block.start_time).slice(
-                                                        0,
-                                                        5,
-                                                    )}{" "}
-                                                    –{" "}
-                                                    {String(block.end_time).slice(
-                                                        0,
-                                                        5,
-                                                    )}
-                                                </strong>
-                                                <span>
-                                            {block.reason ||
-                                                "Horário indisponível"}
-                                        </span>
-                                            </article>
-                                        );
-                                    })}
-
-                                    {agendaAppointments.map((appointment) => {
-                                        const startMinutes =
-                                            getMinutesFromTime(
-                                                appointment.start_time,
-                                            ) -
-                                            7 * 60;
-                                        const top = Math.max(
-                                            0,
-                                            (startMinutes / 60) * 76,
-                                        );
-                                        const height = Math.max(
-                                            54,
-                                            (appointment.duration_minutes / 60) *
-                                            76 -
-                                            7,
-                                        );
-                                        const appointmentEndDate = new Date(
-                                            `${appointment.appointment_date}T${String(
-                                                appointment.start_time,
-                                            ).slice(0, 5)}:00`,
-                                        );
-                                        appointmentEndDate.setMinutes(
-                                            appointmentEndDate.getMinutes() +
-                                            appointment.duration_minutes,
-                                        );
-                                        const isPastAppointment =
-                                            appointment.status !== "cancelled" &&
-                                            appointmentEndDate.getTime() <
-                                            Date.now();
-                                        const isNextAppointment =
-                                            appointment.status !== "cancelled" &&
-                                            appointment.id === nextAppointment?.id;
-
-                                        const whatsappNumber =
-                                            normalizePhoneForWhatsApp(
-                                                appointment.client_phone,
-                                            );
-                                        const whatsappMessage =
-                                            encodeURIComponent(
-                                                `Olá, ${appointment.client_name}! Estou entrando em contato sobre seu agendamento de ${appointment.service_name}, no dia ${formatAdminDate(appointment.appointment_date)}, às ${String(appointment.start_time).slice(0, 5)}.`,
-                                            );
-
-                                        return (
-                                            <article
-                                                key={appointment.id}
-                                                className={`admin-agenda__appointment ${
-                                                    appointment.status ===
-                                                    "cancelled"
-                                                        ? "is-cancelled"
-                                                        : isPastAppointment
-                                                            ? "is-past"
-                                                            : isNextAppointment
-                                                                ? "is-next"
-                                                                : ""
-                                                }`}
-                                                style={{
-                                                    top: `${top}px`,
-                                                    height: `${height}px`,
-                                                }}
-                                            >
-                                                <strong>
-                                                    {String(
-                                                        appointment.start_time,
-                                                    ).slice(0, 5)}{" "}
-                                                    — {appointment.client_name}
-                                                </strong>
-                                                <span>
-                                            {appointment.service_name} •{" "}
-                                                    {
-                                                        appointment.duration_minutes
-                                                    }{" "}
-                                                    min
-                                        </span>
-                                                <span>
-                                            {appointment.client_phone}
-                                        </span>
-
-                                                <div className="admin-agenda__appointment-actions">
-                                                    <button
-                                                        className="admin-details-button"
-                                                        type="button"
-                                                        onClick={() =>
-                                                            openAppointmentDetails(
-                                                                appointment,
-                                                            )
-                                                        }
-                                                    >
-                                                        Detalhes
-                                                    </button>
-                                                    {appointment.status !==
-                                                        "cancelled" && (
-                                                            <button
-                                                                type="button"
-                                                                disabled={
-                                                                    updatingId ===
-                                                                    appointment.id
-                                                                }
-                                                                onClick={() =>
-                                                                    updateAppointmentStatus(
-                                                                        appointment.id,
-                                                                        "cancelled",
-                                                                    )
-                                                                }
-                                                            >
-                                                                Cancelar
-                                                            </button>
-                                                        )}
-                                                    <a
-                                                        href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    >
-                                                        WhatsApp
-                                                    </a>
-                                                </div>
-                                            </article>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ) : adminView === "week" ? (
-                            <div className="admin-week">
-                                <div className="admin-week__grid">
-                                    {weekDates.map((date) => {
-                                        const dayAppointments = appointments
-                                            .filter((appointment) => {
-                                                const matchesDate =
-                                                    appointment.appointment_date ===
-                                                    date;
-                                                const matchesStatus =
-                                                    statusFilter === "all" ||
-                                                    (statusFilter === "active" &&
-                                                        appointment.status !==
-                                                        "cancelled") ||
-                                                    appointment.status ===
-                                                    statusFilter;
-                                                const normalizedSearch =
-                                                    search.trim().toLowerCase();
-                                                const matchesSearch =
-                                                    !normalizedSearch ||
-                                                    appointment.client_name
-                                                        .toLowerCase()
-                                                        .includes(normalizedSearch) ||
-                                                    appointment.client_phone
-                                                        .toLowerCase()
-                                                        .includes(normalizedSearch) ||
-                                                    appointment.service_name
-                                                        .toLowerCase()
-                                                        .includes(normalizedSearch);
-
-                                                return (
-                                                    matchesDate &&
-                                                    matchesStatus &&
-                                                    matchesSearch
-                                                );
-                                            })
-                                            .sort(
-                                                (first, second) =>
-                                                    getMinutesFromTime(
-                                                        first.start_time,
-                                                    ) -
-                                                    getMinutesFromTime(
-                                                        second.start_time,
-                                                    ),
-                                            );
-
-                                        const dayBlocks = adminBlocks
-                                            .filter(
-                                                (block) =>
-                                                    block.block_date === date,
-                                            )
-                                            .sort(
-                                                (first, second) =>
-                                                    getMinutesFromTime(
-                                                        first.start_time,
-                                                    ) -
-                                                    getMinutesFromTime(
-                                                        second.start_time,
-                                                    ),
-                                            );
-
-                                        const today =
-                                            date ===
-                                            formatDateForInput(new Date());
-
-                                        return (
-                                            <section
-                                                className={`admin-week__day ${
-                                                    today ? "is-today" : ""
-                                                }`}
-                                                key={date}
-                                            >
-                                                <header className="admin-week__day-header">
-                                            <span>
-                                                {new Intl.DateTimeFormat(
-                                                    "pt-BR",
-                                                    {
-                                                        weekday: "long",
-                                                    },
-                                                ).format(
-                                                    new Date(
-                                                        `${date}T12:00:00`,
-                                                    ),
-                                                )}
-                                            </span>
-                                                    <strong>
-                                                        {formatAdminDate(date)}
-                                                    </strong>
-                                                </header>
-
-                                                <div className="admin-week__content">
-                                                    {dayBlocks.map((block) => (
-                                                        <article
-                                                            className="admin-week__block"
-                                                            key={block.id}
-                                                        >
-                                                            <strong>
-                                                                {String(
-                                                                    block.start_time,
-                                                                ).slice(0, 5)}{" "}
-                                                                –{" "}
-                                                                {String(
-                                                                    block.end_time,
-                                                                ).slice(0, 5)}
-                                                            </strong>
-                                                            <span>
-                                                        {block.reason ||
-                                                            "Horário bloqueado"}
-                                                    </span>
-                                                        </article>
-                                                    ))}
-
-                                                    {dayAppointments.map(
-                                                        (appointment) => {
-                                                            const whatsappNumber =
-                                                                normalizePhoneForWhatsApp(
-                                                                    appointment.client_phone,
-                                                                );
-                                                            const whatsappMessage =
-                                                                encodeURIComponent(
-                                                                    `Olá, ${appointment.client_name}! Estou entrando em contato sobre seu agendamento de ${appointment.service_name}, no dia ${formatAdminDate(appointment.appointment_date)}, às ${String(appointment.start_time).slice(0, 5)}.`,
-                                                                );
-
-                                                            return (
-                                                                <article
-                                                                    className={`admin-week__appointment ${
-                                                                        appointment.status ===
-                                                                        "cancelled"
-                                                                            ? "is-cancelled"
-                                                                            : ""
-                                                                    }`}
-                                                                    key={
-                                                                        appointment.id
-                                                                    }
-                                                                >
-                                                                    <strong>
-                                                                        {String(
-                                                                            appointment.start_time,
-                                                                        ).slice(
-                                                                            0,
-                                                                            5,
-                                                                        )}{" "}
-                                                                        —{" "}
-                                                                        {
-                                                                            appointment.client_name
-                                                                        }
-                                                                    </strong>
-                                                                    <span>
-                                                                {
-                                                                    appointment.service_name
-                                                                }{" "}
-                                                                        •{" "}
-                                                                        {
-                                                                            appointment.duration_minutes
-                                                                        }{" "}
-                                                                        min
-                                                            </span>
-                                                                    <span>
-                                                                {
-                                                                    appointment.client_phone
-                                                                }
-                                                            </span>
-
-                                                                    <div className="admin-week__actions">
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() =>
-                                                                                openAppointmentDetails(
-                                                                                    appointment,
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            Detalhes
-                                                                        </button>
-                                                                        {appointment.status !==
-                                                                            "cancelled" && (
-                                                                                <button
-                                                                                    type="button"
-                                                                                    disabled={
-                                                                                        updatingId ===
-                                                                                        appointment.id
-                                                                                    }
-                                                                                    onClick={() =>
-                                                                                        updateAppointmentStatus(
-                                                                                            appointment.id,
-                                                                                            "cancelled",
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    Cancelar
-                                                                                </button>
-                                                                            )}
-                                                                        <a
-                                                                            href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                        >
-                                                                            WhatsApp
-                                                                        </a>
-                                                                    </div>
-                                                                </article>
-                                                            );
-                                                        },
-                                                    )}
-
-                                                    {dayAppointments.length === 0 &&
-                                                        dayBlocks.length === 0 && (
-                                                            <div className="admin-week__empty">
-                                                                Dia livre
-                                                            </div>
-                                                        )}
-                                                </div>
-                                            </section>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ) : filteredAppointments.length === 0 ? (
-                            <div className="admin-empty">
-                                Nenhum agendamento encontrado.
-                            </div>
+                        {isLoading ? <div className="admin-loading">Carregando...</div> : adminView === "agenda" ? (
+                            <div className="admin-card-list">{agendaAppointments.length ? agendaAppointments.map(renderAppointmentCard) : <div className="admin-empty">Nenhum agendamento nesta data.</div>}</div>
                         ) : (
-                            <div className="admin-list">
-                                {filteredAppointments.map((appointment) => {
-                                    const whatsappNumber =
-                                        normalizePhoneForWhatsApp(
-                                            appointment.client_phone,
-                                        );
-                                    const whatsappMessage = encodeURIComponent(
-                                        `Olá, ${appointment.client_name}! Estou entrando em contato sobre seu agendamento de ${appointment.service_name}, no dia ${formatAdminDate(appointment.appointment_date)}, às ${String(appointment.start_time).slice(0, 5)}.`,
-                                    );
-
-                                    return (
-                                        <article
-                                            className="admin-appointment"
-                                            key={appointment.id}
-                                        >
-                                            <div className="admin-appointment__top">
-                                                <div>
-                                            <span className="admin-appointment__time">
-                                                {formatAdminDate(
-                                                    appointment.appointment_date,
-                                                )}{" "}
-                                                •{" "}
-                                                {String(
-                                                    appointment.start_time,
-                                                ).slice(0, 5)}
-                                            </span>
-                                                    <h2>
-                                                        {appointment.client_name}
-                                                    </h2>
-                                                </div>
-
-                                                <span
-                                                    className={`admin-status admin-status--${appointment.status}`}
-                                                >
-                                            {appointment.status ===
-                                            "pending"
-                                                ? "Pendente antigo"
-                                                : appointment.status ===
-                                                "confirmed"
-                                                    ? "Confirmado"
-                                                    : "Cancelado"}
-                                        </span>
-                                            </div>
-
-                                            <div className="admin-appointment__details">
-                                                <div className="admin-detail">
-                                                    <span>Serviço</span>
-                                                    <strong>
-                                                        {
-                                                            appointment.service_name
-                                                        }
-                                                    </strong>
-                                                </div>
-                                                <div className="admin-detail">
-                                                    <span>Duração</span>
-                                                    <strong>
-                                                        {
-                                                            appointment.duration_minutes
-                                                        }{" "}
-                                                        min
-                                                    </strong>
-                                                </div>
-                                                <div className="admin-detail">
-                                                    <span>Telefone</span>
-                                                    <a
-                                                        href={`tel:${appointment.client_phone}`}
-                                                    >
-                                                        {
-                                                            appointment.client_phone
-                                                        }
-                                                    </a>
-                                                </div>
-                                                <div className="admin-detail">
-                                                    <span>E-mail</span>
-                                                    <strong>
-                                                        {appointment.client_email ||
-                                                            "Não informado"}
-                                                    </strong>
-                                                </div>
-                                            </div>
-
-                                            <div className="admin-appointment__actions">
-                                                <button
-                                                    className="admin-details-button"
-                                                    type="button"
-                                                    onClick={() =>
-                                                        openAppointmentDetails(
-                                                            appointment,
-                                                        )
-                                                    }
-                                                >
-                                                    Ver detalhes
-                                                </button>
-                                                {appointment.status !==
-                                                    "cancelled" && (
-                                                        <button
-                                                            className="admin-action admin-action--cancel"
-                                                            type="button"
-                                                            disabled={
-                                                                updatingId ===
-                                                                appointment.id
-                                                            }
-                                                            onClick={() =>
-                                                                updateAppointmentStatus(
-                                                                    appointment.id,
-                                                                    "cancelled",
-                                                                )
-                                                            }
-                                                        >
-                                                            Cancelar
-                                                        </button>
-                                                    )}
-
-                                                <a
-                                                    className="admin-action--whatsapp"
-                                                    href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
-                                                    Abrir WhatsApp
-                                                </a>
-                                            </div>
-                                        </article>
-                                    );
+                            <div className="admin-card-list">
+                                {weekDates.map((date) => {
+                                    const items = weeklyAppointments.filter((item) => item.appointment_date === date);
+                                    return <section className="admin-day-group" key={date}><h3 className="admin-day-group__title">{formatAdminDate(date)}</h3>{items.length ? items.map(renderAppointmentCard) : <div className="admin-empty">Dia livre.</div>}</section>;
                                 })}
                             </div>
                         )}
 
-                    </>
+                        <section className="admin-block-manager admin-block-manager--bottom">
+                            <div className="admin-block-manager__header"><div><h2>Bloquear horários</h2><p>Selecione uma data e marque vários horários livres de uma só vez.</p></div></div>
+                            <div className="admin-block-date-row"><label>Data<input type="date" value={blockDate} onChange={(event) => {setBlockDate(event.target.value); setSelectedBlockTimes([]); setBlockError("");}}/></label><div><strong>{selectedBlockTimes.length} horário(s) selecionado(s)</strong><p>Os cards representam períodos de 30 minutos.</p></div></div>
+                            <div className="admin-block-times">
+                                {blockAvailableTimes.map((time) => <button key={time} className={`admin-block-time${selectedBlockTimes.includes(time) ? " is-selected" : ""}`} type="button" onClick={() => setSelectedBlockTimes((current) => current.includes(time) ? current.filter((item) => item !== time) : [...current, time])}>{time}</button>)}
+                            </div>
+                            {!blockAvailableTimes.length && <div className="admin-empty">Não há horários livres nesta data.</div>}
+                            <div className="admin-block-submit-row"><input value={blockReason} onChange={(event) => setBlockReason(event.target.value)} placeholder="Motivo opcional"/><button type="button" disabled={isSavingBlock || !selectedBlockTimes.length} onClick={() => void saveSelectedBlocks()}>{isSavingBlock ? "Bloqueando..." : "Bloquear selecionados"}</button></div>
+                            {blockError && <p className="admin-block-error">{blockError}</p>}
+                            <div className="admin-block-list">
+                                {adminBlocks.filter((item) => item.block_date === blockDate).map((block) => <div className="admin-block-item" key={block.id}><div><strong>{String(block.start_time).slice(0, 5)}–{String(block.end_time).slice(0, 5)}</strong><span>{block.reason || "Horário bloqueado"}</span></div><button type="button" onClick={() => void deleteScheduleBlock(block.id)}>Remover</button></div>)}
+                            </div>
+                        </section>
+                    </section>
+                )}
+
+                {selectedAdminAppointment && (
+                    <div className="admin-modal-backdrop" onMouseDown={(event) => {if (event.target === event.currentTarget) setSelectedAdminAppointment(null);}}>
+                        <section className="admin-modal">
+                            <div className="admin-modal__header"><div><h2>Editar agendamento</h2><p>Altere os dados, cancele ou exclua.</p></div><button className="admin-modal__close" type="button" onClick={() => setSelectedAdminAppointment(null)}>×</button></div>
+                            <div className="admin-modal__body">
+                                <div className="admin-edit-form">
+                                    <label>Nome da cliente<input value={editAppointmentName} onChange={(event) => setEditAppointmentName(event.target.value)}/></label>
+                                    <label>Telefone<input value={editAppointmentPhone} onChange={(event) => setEditAppointmentPhone(event.target.value)}/></label>
+                                    <label className="admin-edit-form__full">E-mail<input type="email" value={editAppointmentEmail} onChange={(event) => setEditAppointmentEmail(event.target.value)}/></label>
+                                    <label>Serviço<select value={editAppointmentService} onChange={(event) => setEditAppointmentService(event.target.value)}>{adminServices.map((service) => <option key={service.id} value={service.name}>{service.name}</option>)}</select></label>
+                                    <label>Data<input type="date" value={editAppointmentDate} onChange={(event) => setEditAppointmentDate(event.target.value)}/></label>
+                                    <label>Horário<select value={editAppointmentTime} onChange={(event) => setEditAppointmentTime(event.target.value)}>{allDayTimes.map((time) => <option key={time} value={time}>{time}</option>)}</select></label>
+                                    {appointmentEditError && <p className="admin-reschedule__message admin-edit-form__full">{appointmentEditError}</p>}
+                                    <div className="admin-edit-actions">
+                                        <button className="save" type="button" disabled={isSavingAppointment} onClick={() => void saveAppointmentChanges()}>{isSavingAppointment ? "Salvando..." : "Salvar alterações"}</button>
+                                        {selectedAdminAppointment.status !== "cancelled" && <button className="cancel" type="button" onClick={() => void cancelAppointment(selectedAdminAppointment)}>Cancelar agendamento</button>}
+                                        <button className="delete" type="button" onClick={() => void deleteAppointment(selectedAdminAppointment)}>Excluir agendamento</button>
+                                        <button className="close" type="button" onClick={() => setSelectedAdminAppointment(null)}>Fechar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
                 )}
 
                 {selectedClient && (
-                    <div
-                        className="admin-modal-backdrop"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label={`Histórico de ${selectedClient.name}`}
-                        onMouseDown={(event) => {
-                            if (event.target === event.currentTarget) {
-                                setSelectedClient(null);
-                            }
-                        }}
-                    >
+                    <div className="admin-modal-backdrop" onMouseDown={(event) => {if (event.target === event.currentTarget) setSelectedClient(null);}}>
                         <section className="admin-client-history">
-                            <button
-                                className="admin-modal__close"
-                                type="button"
-                                aria-label="Fechar histórico"
-                                onClick={() => setSelectedClient(null)}
-                            >
-                                ×
-                            </button>
-                            <span className="admin-clients__eyebrow">
-                            Histórico da cliente
-                        </span>
-                            <h2>{selectedClient.name}</h2>
-                            <p>
-                                {selectedClient.phone}
-                                {selectedClient.email
-                                    ? ` • ${selectedClient.email}`
-                                    : ""}
-                            </p>
-
-                            <div className="admin-client-history__list">
-                                {selectedClient.appointments.map((appointment) => (
-                                    <article key={appointment.id}>
-                                        <div>
-                                            <strong>
-                                                {formatAdminDate(
-                                                    appointment.appointment_date,
-                                                )}{" "}
-                                                às{" "}
-                                                {String(
-                                                    appointment.start_time,
-                                                ).slice(0, 5)}
-                                            </strong>
-                                            <span>{appointment.service_name}</span>
-                                        </div>
-                                        <span
-                                            className={`admin-status admin-status--${appointment.status}`}
-                                        >
-                                        {appointment.status === "confirmed"
-                                            ? "Confirmado"
-                                            : appointment.status === "cancelled"
-                                                ? "Cancelado"
-                                                : "Pendente"}
-                                    </span>
-                                    </article>
-                                ))}
-                            </div>
+                            <button className="admin-modal__close" type="button" onClick={() => setSelectedClient(null)}>×</button>
+                            <h2>Histórico de {selectedClient.name}</h2>
+                            <p>{selectedClient.phone} • {selectedClient.email || "E-mail não informado"}</p>
+                            <div className="admin-client-history__list">{selectedClient.appointments.map((appointment) => <article key={appointment.id}><div><strong>{appointment.service_name}</strong><span>{formatAdminDate(appointment.appointment_date)} às {String(appointment.start_time).slice(0, 5)}</span></div><span>{appointment.status === "cancelled" ? "Cancelado" : "Confirmado"}</span></article>)}</div>
                         </section>
                     </div>
                 )}
 
                 {editingClient && (
-                    <div
-                        className="admin-modal-backdrop"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label={`Editar ${editingClient.name}`}
-                    >
-                        <form
-                            className="admin-client-editor"
-                            onSubmit={saveClientChanges}
-                        >
-                            <button
-                                className="admin-modal__close"
-                                type="button"
-                                aria-label="Fechar edição"
-                                onClick={closeClientEditor}
-                            >
-                                ×
-                            </button>
-                            <span className="admin-clients__eyebrow">
-                            Cadastro da cliente
-                        </span>
-                            <h2>Editar informações</h2>
-
-                            <label>
-                                Nome completo
-                                <input
-                                    type="text"
-                                    value={editClientName}
-                                    onChange={(event) =>
-                                        setEditClientName(event.target.value)
-                                    }
-                                    required
-                                />
-                            </label>
-
-                            <label>
-                                Telefone
-                                <input
-                                    type="tel"
-                                    inputMode="numeric"
-                                    maxLength={15}
-                                    value={editClientPhone}
-                                    onChange={(event) =>
-                                        setEditClientPhone(
-                                            formatBrazilianPhone(
-                                                event.target.value,
-                                            ),
-                                        )
-                                    }
-                                    required
-                                />
-                            </label>
-
-                            <label>
-                                E-mail
-                                <input
-                                    type="email"
-                                    value={editClientEmail}
-                                    onChange={(event) =>
-                                        setEditClientEmail(event.target.value)
-                                    }
-                                    placeholder="Opcional"
-                                />
-                            </label>
-
-                            {clientEditError && (
-                                <p className="admin-reschedule__message">
-                                    {clientEditError}
-                                </p>
-                            )}
-
-                            <button
-                                className="admin-primary-button"
-                                type="submit"
-                                disabled={isSavingClient}
-                            >
-                                {isSavingClient
-                                    ? "Salvando..."
-                                    : "Salvar alterações"}
-                            </button>
-                        </form>
-                    </div>
-                )}
-
-                {selectedAdminAppointment && (
-                    <div
-                        className="admin-modal-backdrop"
-                        role="presentation"
-                        onMouseDown={(event) => {
-                            if (event.target === event.currentTarget) {
-                                closeAppointmentDetails();
-                            }
-                        }}
-                    >
-                        <section
-                            className="admin-modal"
-                            role="dialog"
-                            aria-modal="true"
-                            aria-labelledby="admin-modal-title"
-                        >
-                            <header className="admin-modal__header">
-                                <div>
-                                    <h2 id="admin-modal-title">
-                                        {selectedAdminAppointment.client_name}
-                                    </h2>
-                                    <p>
-                                        Detalhes e reagendamento da cliente
-                                    </p>
-                                </div>
-                                <button
-                                    className="admin-modal__close"
-                                    type="button"
-                                    aria-label="Fechar"
-                                    onClick={closeAppointmentDetails}
-                                >
-                                    ×
-                                </button>
-                            </header>
-
-                            <div className="admin-modal__body">
-                                <div className="admin-modal__grid">
-                                    <div className="admin-modal__item">
-                                        <span>Serviço</span>
-                                        <strong>
-                                            {
-                                                selectedAdminAppointment.service_name
-                                            }
-                                        </strong>
-                                    </div>
-                                    <div className="admin-modal__item">
-                                        <span>Duração</span>
-                                        <strong>
-                                            {
-                                                selectedAdminAppointment.duration_minutes
-                                            }{" "}
-                                            minutos
-                                        </strong>
-                                    </div>
-                                    <div className="admin-modal__item">
-                                        <span>Telefone</span>
-                                        <a
-                                            href={`tel:${selectedAdminAppointment.client_phone}`}
-                                        >
-                                            {
-                                                selectedAdminAppointment.client_phone
-                                            }
-                                        </a>
-                                    </div>
-                                    <div className="admin-modal__item">
-                                        <span>E-mail</span>
-                                        <strong>
-                                            {selectedAdminAppointment.client_email ||
-                                                "Não informado"}
-                                        </strong>
-                                    </div>
-                                    <div className="admin-modal__item">
-                                        <span>Data atual</span>
-                                        <strong>
-                                            {formatAdminDate(
-                                                selectedAdminAppointment.appointment_date,
-                                            )}
-                                        </strong>
-                                    </div>
-                                    <div className="admin-modal__item">
-                                        <span>Horário atual</span>
-                                        <strong>
-                                            {String(
-                                                selectedAdminAppointment.start_time,
-                                            ).slice(0, 5)}
-                                        </strong>
-                                    </div>
-                                </div>
-
-                                {selectedAdminAppointment.status !==
-                                    "cancelled" && (
-                                        <div className="admin-reschedule">
-                                            <h3>Reagendar</h3>
-                                            <p>
-                                                Escolha uma nova data e horário. O
-                                                sistema impede conflito com outros
-                                                agendamentos.
-                                            </p>
-
-                                            <div className="admin-reschedule__fields">
-                                                <label>
-                                                    Nova data
-                                                    <input
-                                                        type="date"
-                                                        min={formatDateForInput(
-                                                            new Date(),
-                                                        )}
-                                                        value={rescheduleDate}
-                                                        onChange={(event) =>
-                                                            setRescheduleDate(
-                                                                event.target.value,
-                                                            )
-                                                        }
-                                                    />
-                                                </label>
-
-                                                <label>
-                                                    Novo horário
-                                                    <select
-                                                        value={rescheduleTime}
-                                                        onChange={(event) =>
-                                                            setRescheduleTime(
-                                                                event.target.value,
-                                                            )
-                                                        }
-                                                    >
-                                                        {Array.from(
-                                                            {length: 25},
-                                                            (_, index) => {
-                                                                const totalMinutes =
-                                                                    7 * 60 +
-                                                                    index * 30;
-                                                                const hours =
-                                                                    Math.floor(
-                                                                        totalMinutes /
-                                                                        60,
-                                                                    );
-                                                                const minutes =
-                                                                    totalMinutes % 60;
-                                                                const value = `${String(
-                                                                    hours,
-                                                                ).padStart(
-                                                                    2,
-                                                                    "0",
-                                                                )}:${String(
-                                                                    minutes,
-                                                                ).padStart(2, "0")}`;
-
-                                                                return (
-                                                                    <option
-                                                                        key={value}
-                                                                        value={value}
-                                                                    >
-                                                                        {value}
-                                                                    </option>
-                                                                );
-                                                            },
-                                                        )}
-                                                    </select>
-                                                </label>
-                                            </div>
-
-                                            {rescheduleError && (
-                                                <p className="admin-reschedule__message">
-                                                    {rescheduleError}
-                                                </p>
-                                            )}
-
-                                            <div className="admin-reschedule__actions">
-                                                <button
-                                                    className="admin-reschedule__save"
-                                                    type="button"
-                                                    disabled={isRescheduling}
-                                                    onClick={handleReschedule}
-                                                >
-                                                    {isRescheduling
-                                                        ? "Salvando..."
-                                                        : "Salvar reagendamento"}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                <a
-                                    className="admin-modal__whatsapp"
-                                    href={`https://wa.me/${normalizePhoneForWhatsApp(
-                                        selectedAdminAppointment.client_phone,
-                                    )}?text=${encodeURIComponent(
-                                        `Olá, ${selectedAdminAppointment.client_name}! Estou entrando em contato sobre seu agendamento de ${selectedAdminAppointment.service_name}, no dia ${formatAdminDate(selectedAdminAppointment.appointment_date)}, às ${String(selectedAdminAppointment.start_time).slice(0, 5)}.`,
-                                    )}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    Conversar pelo WhatsApp
-                                </a>
-                            </div>
+                    <div className="admin-modal-backdrop" onMouseDown={(event) => {if (event.target === event.currentTarget) setEditingClient(null);}}>
+                        <section className="admin-client-editor">
+                            <button className="admin-modal__close" type="button" onClick={() => setEditingClient(null)}>×</button>
+                            <h2>Editar cadastro</h2>
+                            <label>Nome<input value={editClientName} onChange={(event) => setEditClientName(event.target.value)}/></label>
+                            <label>Telefone<input value={editClientPhone} onChange={(event) => setEditClientPhone(event.target.value)}/></label>
+                            <label>E-mail<input type="email" value={editClientEmail} onChange={(event) => setEditClientEmail(event.target.value)}/></label>
+                            {clientEditError && <p className="admin-reschedule__message">{clientEditError}</p>}
+                            <button className="admin-primary-button" type="button" disabled={isSavingClient} onClick={() => void saveClientChanges()}>{isSavingClient ? "Salvando..." : "Salvar cadastro"}</button>
                         </section>
                     </div>
                 )}
@@ -5341,6 +3694,7 @@ function AdminPanel() {
         </main>
     );
 }
+
 
 function App() {
     const normalizedPath = window.location.pathname.replace(/\/+$/, "");
