@@ -2889,6 +2889,62 @@ const adminEnhancementStyles = `
 }
 .admin-block-submit-row button:disabled { opacity: .55; cursor: wait; }
 
+
+.admin-top-agenda {
+    display: grid;
+    gap: 13px;
+    margin-bottom: 18px;
+}
+.admin-top-agenda__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 18px;
+    border: 1px solid rgba(154, 83, 104, 0.2);
+    border-radius: 18px;
+    background: #fff;
+}
+.admin-top-agenda__header span,
+.admin-top-agenda__header strong { display: block; }
+.admin-top-agenda__header span {
+    margin-bottom: 5px;
+    color: #8a7078;
+    font-size: .78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.admin-top-agenda__header strong {
+    color: #4d3039;
+    text-transform: capitalize;
+}
+.admin-top-agenda .admin-booking-card {
+    border: 1px solid rgba(255,255,255,.14);
+    border-left: 0;
+    background: linear-gradient(135deg, #71364a, #a66075);
+    color: #fff;
+    box-shadow: 0 14px 34px rgba(83, 48, 58, 0.16);
+}
+.admin-top-agenda .admin-booking-card:hover {
+    box-shadow: 0 18px 40px rgba(83, 48, 58, 0.22);
+}
+.admin-top-agenda .admin-booking-card h3,
+.admin-top-agenda .admin-booking-card__time,
+.admin-top-agenda .admin-booking-card__details strong { color: #fff; }
+.admin-top-agenda .admin-booking-card__details div {
+    background: rgba(255,255,255,.11);
+}
+.admin-top-agenda .admin-booking-card__details span {
+    color: rgba(255,255,255,.74);
+}
+.admin-top-agenda .admin-booking-card.is-cancelled {
+    background: linear-gradient(135deg, #777073, #9a8f93);
+}
+.admin-empty--top {
+    border: 1px dashed #d9bec7;
+    background: rgba(255,255,255,.9);
+}
+
 @media (max-width: 850px) {
     .admin-dashboard-cards { grid-template-columns: 1fr 1fr; }
     .admin-booking-card__details { grid-template-columns: 1fr 1fr; }
@@ -2904,6 +2960,7 @@ const adminEnhancementStyles = `
     .admin-edit-form__full,
     .admin-edit-actions { grid-column: auto; }
     .admin-section-heading,
+    .admin-top-agenda__header,
     .admin-booking-card__top { flex-direction: column; align-items: stretch; }
 }
 `;
@@ -2926,8 +2983,6 @@ function AdminPanel() {
 
     const [adminView, setAdminView] = useState<"agenda" | "week" | "clients" | "settings">("agenda");
     const [agendaDate, setAgendaDate] = useState(formatDateForInput(new Date()));
-    const [search, setSearch] = useState("");
-    const [statusFilter, setStatusFilter] = useState("confirmed");
 
     const [showManualForm, setShowManualForm] = useState(false);
     const [manualClientName, setManualClientName] = useState("");
@@ -3313,33 +3368,15 @@ function AdminPanel() {
         return Array.from({length: 7}, (_, index) => addDaysToInputDate(monday, index));
     }, [agendaDate]);
 
-    const matchesAdminFilters = (appointment: AdminAppointment) => {
-        const query = search.trim().toLowerCase();
-        const matchesSearch = !query ||
-            appointment.client_name.toLowerCase().includes(query) ||
-            appointment.client_phone.toLowerCase().includes(query) ||
-            appointment.service_name.toLowerCase().includes(query);
-        const matchesStatus = statusFilter === "all" ||
-            (statusFilter === "active" && appointment.status !== "cancelled") ||
-            appointment.status === statusFilter;
-        return matchesSearch && matchesStatus;
-    };
-
     const agendaAppointments = useMemo(() =>
-            appointments.filter((item) => item.appointment_date === agendaDate && matchesAdminFilters(item))
+            appointments.filter((item) => item.appointment_date === agendaDate)
                 .sort((a, b) => getMinutesFromTime(a.start_time) - getMinutesFromTime(b.start_time)),
-        [appointments, agendaDate, search, statusFilter]);
+        [appointments, agendaDate]);
 
     const weeklyAppointments = useMemo(() =>
-            appointments.filter((item) => weekDates.includes(item.appointment_date) && matchesAdminFilters(item))
-                .sort((a, b) => `${a.appointment_date}${a.start_time}`.localeCompare(`${b.appointment_date}${b.start_time}`)),
-        [appointments, weekDates, search, statusFilter]);
-
-    const nextAppointment = useMemo(() => {
-        const now = new Date();
-        return appointments.filter((item) => item.status !== "cancelled" && getAppointmentDateTime(item).getTime() >= now.getTime())
-            .sort((a, b) => getAppointmentDateTime(a).getTime() - getAppointmentDateTime(b).getTime())[0];
-    }, [appointments]);
+            appointments.filter((item) => weekDates.includes(item.appointment_date))
+                .sort((a, b) => `${a.appointment_date}${String(a.start_time).slice(0, 5)}`.localeCompare(`${b.appointment_date}${String(b.start_time).slice(0, 5)}`)),
+        [appointments, weekDates]);
 
     const blockAvailableTimes = useMemo(() => {
         const day = new Date(`${blockDate}T12:00:00`).getDay();
@@ -3508,20 +3545,49 @@ function AdminPanel() {
                     <button className="admin-secondary-button" type="button" onClick={handleLogout}>Sair</button>
                 </header>
 
-                {nextAppointment && (
-                    <div className="admin-next-appointment">
-                        <span>Próximo atendimento</span>
-                        <strong>{nextAppointment.client_name} • {String(nextAppointment.start_time).slice(0, 5)}</strong>
-                        <small>{formatAdminDate(nextAppointment.appointment_date)} — {nextAppointment.service_name}</small>
-                    </div>
-                )}
-
                 <div className="admin-dashboard-cards">
                     <button className={`admin-dashboard-card${adminView === "agenda" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("agenda")}><strong>Agenda do dia</strong><span>Veja todos os atendimentos do dia.</span></button>
                     <button className={`admin-dashboard-card${adminView === "week" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("week")}><strong>Agenda semanal</strong><span>Atendimentos em ordem de dia e horário.</span></button>
                     <button className={`admin-dashboard-card${adminView === "clients" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("clients")}><strong>Clientes</strong><span>Cadastros, histórico e indicadores.</span></button>
                     <button className={`admin-dashboard-card${adminView === "settings" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("settings")}><strong>Configurações</strong><span>Serviços e horários do site.</span></button>
                 </div>
+
+                {(adminView === "agenda" || adminView === "week") && (
+                    <section className="admin-top-agenda">
+                        <div className="admin-top-agenda__header">
+                            <div>
+                                <span>{adminView === "agenda" ? "Atendimentos do dia" : "Atendimentos da semana"}</span>
+                                <strong>
+                                    {adminView === "agenda"
+                                        ? formatAdminDate(agendaDate)
+                                        : `${formatAdminDate(weekDates[0])} até ${formatAdminDate(weekDates[6])}`}
+                                </strong>
+                            </div>
+                            <div className="admin-section-date-controls">
+                                <button type="button" onClick={() => setAgendaDate((current) => addDaysToInputDate(current, adminView === "week" ? -7 : -1))}>←</button>
+                                <input type="date" value={agendaDate} onChange={(event) => setAgendaDate(event.target.value)}/>
+                                <button type="button" onClick={() => setAgendaDate((current) => addDaysToInputDate(current, adminView === "week" ? 7 : 1))}>→</button>
+                                <button type="button" onClick={() => setAgendaDate(formatDateForInput(new Date()))}>Hoje</button>
+                            </div>
+                        </div>
+
+                        {isLoading ? (
+                            <div className="admin-loading">Carregando...</div>
+                        ) : adminView === "agenda" ? (
+                            <div className="admin-card-list">
+                                {agendaAppointments.length
+                                    ? agendaAppointments.map(renderAppointmentCard)
+                                    : <div className="admin-empty admin-empty--top">Nenhum agendamento nesta data.</div>}
+                            </div>
+                        ) : (
+                            <div className="admin-card-list">
+                                {weeklyAppointments.length
+                                    ? weeklyAppointments.map(renderAppointmentCard)
+                                    : <div className="admin-empty admin-empty--top">Nenhum agendamento nesta semana.</div>}
+                            </div>
+                        )}
+                    </section>
+                )}
 
                 {panelError && <p className="admin-panel__error">{panelError}</p>}
 
@@ -3598,32 +3664,6 @@ function AdminPanel() {
                                 </form>
                             )}
                         </section>
-
-                        <div className="admin-section-heading">
-                            <div><h2>{adminView === "agenda" ? "Agenda do dia" : "Agenda da semana"}</h2><p>{adminView === "agenda" ? formatAdminDate(agendaDate) : `${formatAdminDate(weekDates[0])} até ${formatAdminDate(weekDates[6])}`}</p></div>
-                            <div className="admin-section-date-controls">
-                                <button type="button" onClick={() => setAgendaDate((current) => addDaysToInputDate(current, adminView === "week" ? -7 : -1))}>←</button>
-                                <input type="date" value={agendaDate} onChange={(event) => setAgendaDate(event.target.value)}/>
-                                <button type="button" onClick={() => setAgendaDate((current) => addDaysToInputDate(current, adminView === "week" ? 7 : 1))}>→</button>
-                                <button type="button" onClick={() => setAgendaDate(formatDateForInput(new Date()))}>Hoje</button>
-                            </div>
-                        </div>
-
-                        <div className="admin-toolbar">
-                            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar cliente, telefone ou serviço"/>
-                            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="confirmed">Confirmados</option><option value="active">Ativos</option><option value="cancelled">Cancelados</option><option value="all">Todos</option></select>
-                        </div>
-
-                        {isLoading ? <div className="admin-loading">Carregando...</div> : adminView === "agenda" ? (
-                            <div className="admin-card-list">{agendaAppointments.length ? agendaAppointments.map(renderAppointmentCard) : <div className="admin-empty">Nenhum agendamento nesta data.</div>}</div>
-                        ) : (
-                            <div className="admin-card-list">
-                                {weekDates.map((date) => {
-                                    const items = weeklyAppointments.filter((item) => item.appointment_date === date);
-                                    return <section className="admin-day-group" key={date}><h3 className="admin-day-group__title">{formatAdminDate(date)}</h3>{items.length ? items.map(renderAppointmentCard) : <div className="admin-empty">Dia livre.</div>}</section>;
-                                })}
-                            </div>
-                        )}
 
                         <section className="admin-block-manager admin-block-manager--bottom">
                             <div className="admin-block-manager__header"><div><h2>Bloquear horários</h2><p>Selecione uma data e marque vários horários livres de uma só vez.</p></div></div>
