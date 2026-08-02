@@ -2594,6 +2594,42 @@ function getAppointmentDateTime(appointment: AdminAppointment) {
 }
 
 
+type WhatsAppNotificationType = "booking-confirmation" | "attendance-confirmation" | "two-hour-reminder";
+
+function formatAppointmentDateForMessage(date: string) {
+    return new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+    });
+}
+
+function buildWhatsAppMessage(
+    appointment: AdminAppointment,
+    type: WhatsAppNotificationType,
+) {
+    const firstName = appointment.client_name.trim().split(/\s+/)[0] || appointment.client_name;
+    const date = formatAppointmentDateForMessage(appointment.appointment_date);
+    const time = String(appointment.start_time).slice(0, 5);
+
+    if (type === "booking-confirmation") {
+        return `Olá, ${firstName}! Seu agendamento com a Mirian Silva Nail Design foi realizado com sucesso.\n\nServiço: ${appointment.service_name}\nData: ${date}\nHorário: ${time}\n\nAguardamos você! 💅`;
+    }
+
+    if (type === "attendance-confirmation") {
+        return `Olá, ${firstName}! Seu atendimento com a Mirian Silva Nail Design está marcado para amanhã, dia ${date}, às ${time}.\n\nPoderia confirmar seu comparecimento?`;
+    }
+
+    return `Olá, ${firstName}! Passando para lembrar que seu atendimento com a Mirian Silva Nail Design será hoje às ${time}.\n\nEsperamos você! 💅`;
+}
+
+function getWhatsAppNotificationLabel(type: WhatsAppNotificationType) {
+    if (type === "booking-confirmation") return "Enviar confirmação";
+    if (type === "attendance-confirmation") return "Solicitar confirmação";
+    return "Enviar lembrete";
+}
+
+
 const adminEnhancementStyles = `
 .admin-dashboard-cards {
     display: grid;
@@ -2767,6 +2803,86 @@ const adminEnhancementStyles = `
 }
 .admin-booking-card__footer button { background: #6d3445; }
 .admin-booking-card__footer a { background: #1f9d59; }
+
+
+.admin-booking-card__footer a.is-due {
+    background: #c56b2f;
+}
+.admin-booking-card__footer a.is-opened {
+    background: #7f777a;
+}
+.admin-message-center {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 18px;
+    border: 1px solid #e4cfd6;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 10px 28px rgba(83, 48, 58, 0.06);
+}
+.admin-message-center__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: center;
+}
+.admin-message-center__header h2 {
+    margin: 0 0 5px;
+    font-size: 1.05rem;
+}
+.admin-message-center__header p {
+    margin: 0;
+    color: #80666e;
+    font-size: .86rem;
+}
+.admin-message-center__count {
+    min-width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #6d3445;
+    color: #fff;
+    font-weight: 900;
+}
+.admin-message-center__list {
+    display: grid;
+    gap: 9px;
+}
+.admin-message-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 13px;
+    border-radius: 13px;
+    background: #f8f1f3;
+}
+.admin-message-item strong,
+.admin-message-item span {
+    display: block;
+}
+.admin-message-item span {
+    margin-top: 4px;
+    color: #80666e;
+    font-size: .8rem;
+}
+.admin-message-item a {
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #1f9d59;
+    color: #fff;
+    font-size: .78rem;
+    font-weight: 850;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.admin-message-center__empty {
+    margin: 0;
+    color: #80666e;
+    font-size: .88rem;
+}
 
 .admin-edit-form {
     display: grid;
@@ -2962,6 +3078,16 @@ const adminEnhancementStyles = `
     .admin-section-heading,
     .admin-top-agenda__header,
     .admin-booking-card__top { flex-direction: column; align-items: stretch; }
+
+    .admin-message-center__header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .admin-message-item {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
 }
 `;
 
@@ -2980,6 +3106,15 @@ function AdminPanel() {
     const [adminBusinessHours, setAdminBusinessHours] = useState<AdminBusinessHour[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [panelError, setPanelError] = useState("");
+    const [notificationClock, setNotificationClock] = useState(() => Date.now());
+    const [openedWhatsAppNotifications, setOpenedWhatsAppNotifications] = useState<Record<string, boolean>>(() => {
+        try {
+            const saved = window.localStorage.getItem("mirian-whatsapp-notifications-opened");
+            return saved ? JSON.parse(saved) as Record<string, boolean> : {};
+        } catch {
+            return {};
+        }
+    });
 
     const [adminView, setAdminView] = useState<"agenda" | "week" | "clients" | "settings">("agenda");
     const [agendaDate, setAgendaDate] = useState(formatDateForInput(new Date()));
@@ -3030,6 +3165,22 @@ function AdminPanel() {
         () => Array.from({length: 48}, (_, index) => minutesToTime(index * 30)),
         [],
     );
+
+    useEffect(() => {
+        const timer = window.setInterval(() => setNotificationClock(Date.now()), 60_000);
+        return () => window.clearInterval(timer);
+    }, []);
+
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(
+                "mirian-whatsapp-notifications-opened",
+                JSON.stringify(openedWhatsAppNotifications),
+            );
+        } catch {
+            // O painel continua funcionando mesmo se o navegador bloquear o armazenamento local.
+        }
+    }, [openedWhatsAppNotifications]);
 
     useEffect(() => {
         async function checkSession() {
@@ -3378,6 +3529,67 @@ function AdminPanel() {
                 .sort((a, b) => `${a.appointment_date}${String(a.start_time).slice(0, 5)}`.localeCompare(`${b.appointment_date}${String(b.start_time).slice(0, 5)}`)),
         [appointments, weekDates]);
 
+    function getNotificationKey(appointmentId: string, type: WhatsAppNotificationType) {
+        return `${appointmentId}:${type}`;
+    }
+
+    function markWhatsAppNotificationOpened(
+        appointment: AdminAppointment,
+        type: WhatsAppNotificationType,
+    ) {
+        const key = getNotificationKey(appointment.id, type);
+        setOpenedWhatsAppNotifications((current) => ({...current, [key]: true}));
+    }
+
+    function getWhatsAppUrl(
+        appointment: AdminAppointment,
+        type: WhatsAppNotificationType,
+    ) {
+        const phone = normalizePhoneForWhatsApp(appointment.client_phone);
+        const message = buildWhatsAppMessage(appointment, type);
+        return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    }
+
+    function getDueNotificationTypes(appointment: AdminAppointment) {
+        if (appointment.status === "cancelled") return [] as WhatsAppNotificationType[];
+
+        const appointmentTime = getAppointmentDateTime(appointment).getTime();
+        const difference = appointmentTime - notificationClock;
+        const hour = 60 * 60 * 1000;
+        const types: WhatsAppNotificationType[] = [];
+
+        if (difference > 0) {
+            types.push("booking-confirmation");
+        }
+
+        if (difference > 2 * hour && difference <= 24 * hour) {
+            types.push("attendance-confirmation");
+        }
+
+        if (difference > 0 && difference <= 2 * hour) {
+            types.push("two-hour-reminder");
+        }
+
+        return types;
+    }
+
+    const pendingWhatsAppNotifications = useMemo(() => {
+        return appointments
+            .flatMap((appointment) =>
+                getDueNotificationTypes(appointment).map((type) => ({
+                    appointment,
+                    type,
+                    key: getNotificationKey(appointment.id, type),
+                })),
+            )
+            .filter((notification) => !openedWhatsAppNotifications[notification.key])
+            .sort(
+                (first, second) =>
+                    getAppointmentDateTime(first.appointment).getTime() -
+                    getAppointmentDateTime(second.appointment).getTime(),
+            );
+    }, [appointments, notificationClock, openedWhatsAppNotifications]);
+
     const blockAvailableTimes = useMemo(() => {
         const day = new Date(`${blockDate}T12:00:00`).getDay();
         const lastStart = day === 0 || day === 6 ? 13 * 60 : 19 * 60;
@@ -3475,43 +3687,57 @@ function AdminPanel() {
         setSavingHoursId(null);
     }
 
-    const renderAppointmentCard = (appointment: AdminAppointment) => (
-        <article
-            key={appointment.id}
-            className={`admin-booking-card${appointment.status === "cancelled" ? " is-cancelled" : ""}`}
-            onClick={() => openAppointmentDetails(appointment)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") openAppointmentDetails(appointment);
-            }}
-        >
-            <div className="admin-booking-card__top">
-                <div>
-                    <span className="admin-booking-card__time">{String(appointment.start_time).slice(0, 5)}</span>
-                    <h3>{appointment.client_name}</h3>
+    const renderAppointmentCard = (appointment: AdminAppointment) => {
+        const dueTypes = getDueNotificationTypes(appointment);
+
+        return (
+            <article
+                key={appointment.id}
+                className={`admin-booking-card${appointment.status === "cancelled" ? " is-cancelled" : ""}`}
+                onClick={() => openAppointmentDetails(appointment)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") openAppointmentDetails(appointment);
+                }}
+            >
+                <div className="admin-booking-card__top">
+                    <div>
+                        <span className="admin-booking-card__time">{String(appointment.start_time).slice(0, 5)}</span>
+                        <h3>{appointment.client_name}</h3>
+                    </div>
+                    <span className={`admin-status admin-status--${appointment.status}`}>{appointment.status === "cancelled" ? "Cancelado" : "Confirmado"}</span>
                 </div>
-                <span className={`admin-status admin-status--${appointment.status}`}>{appointment.status === "cancelled" ? "Cancelado" : "Confirmado"}</span>
-            </div>
-            <div className="admin-booking-card__details">
-                <div><span>Data</span><strong>{formatAdminDate(appointment.appointment_date)}</strong></div>
-                <div><span>Serviço</span><strong>{appointment.service_name}</strong></div>
-                <div><span>Duração</span><strong>{appointment.duration_minutes} min</strong></div>
-                <div><span>Telefone</span><strong>{appointment.client_phone}</strong></div>
-            </div>
-            <div className="admin-booking-card__footer" onClick={(event) => event.stopPropagation()}>
-                <button type="button" onClick={() => openAppointmentDetails(appointment)}>Editar detalhes</button>
-                {appointment.status !== "cancelled" && <button type="button" onClick={() => void cancelAppointment(appointment)}>Cancelar</button>}
-                <a
-                    href={`https://wa.me/${normalizePhoneForWhatsApp(appointment.client_phone)}?text=${encodeURIComponent(`Olá, ${appointment.client_name}! Estou entrando em contato sobre seu agendamento de ${appointment.service_name}, no dia ${formatAdminDate(appointment.appointment_date)}, às ${String(appointment.start_time).slice(0, 5)}.`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    WhatsApp
-                </a>
-            </div>
-        </article>
-    );
+                <div className="admin-booking-card__details">
+                    <div><span>Data</span><strong>{formatAdminDate(appointment.appointment_date)}</strong></div>
+                    <div><span>Serviço</span><strong>{appointment.service_name}</strong></div>
+                    <div><span>Duração</span><strong>{appointment.duration_minutes} min</strong></div>
+                    <div><span>Telefone</span><strong>{appointment.client_phone}</strong></div>
+                </div>
+                <div className="admin-booking-card__footer" onClick={(event) => event.stopPropagation()}>
+                    <button type="button" onClick={() => openAppointmentDetails(appointment)}>Editar detalhes</button>
+                    {appointment.status !== "cancelled" && <button type="button" onClick={() => void cancelAppointment(appointment)}>Cancelar</button>}
+                    {dueTypes.map((type) => {
+                        const key = getNotificationKey(appointment.id, type);
+                        const wasOpened = Boolean(openedWhatsAppNotifications[key]);
+
+                        return (
+                            <a
+                                key={type}
+                                className={`${type !== "booking-confirmation" ? "is-due" : ""}${wasOpened ? " is-opened" : ""}`.trim()}
+                                href={getWhatsAppUrl(appointment, type)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => markWhatsAppNotificationOpened(appointment, type)}
+                            >
+                                {wasOpened ? "Abrir novamente" : getWhatsAppNotificationLabel(type)}
+                            </a>
+                        );
+                    })}
+                </div>
+            </article>
+        );
+    };
 
     if (isCheckingSession) {
         return <main className="admin-page"><style>{adminStyles + adminEnhancementStyles}</style><div className="admin-login"><div className="admin-loading">Verificando acesso...</div></div></main>;
@@ -3551,6 +3777,39 @@ function AdminPanel() {
                     <button className={`admin-dashboard-card${adminView === "clients" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("clients")}><strong>Clientes</strong><span>Cadastros, histórico e indicadores.</span></button>
                     <button className={`admin-dashboard-card${adminView === "settings" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("settings")}><strong>Configurações</strong><span>Serviços e horários do site.</span></button>
                 </div>
+
+                <section className="admin-message-center">
+                    <div className="admin-message-center__header">
+                        <div>
+                            <h2>Mensagens pendentes</h2>
+                            <p>Abra o WhatsApp com a mensagem pronta e toque em enviar.</p>
+                        </div>
+                        <span className="admin-message-center__count">{pendingWhatsAppNotifications.length}</span>
+                    </div>
+
+                    {pendingWhatsAppNotifications.length ? (
+                        <div className="admin-message-center__list">
+                            {pendingWhatsAppNotifications.slice(0, 10).map(({appointment, type, key}) => (
+                                <article className="admin-message-item" key={key}>
+                                    <div>
+                                        <strong>{getWhatsAppNotificationLabel(type)} — {appointment.client_name}</strong>
+                                        <span>{formatAdminDate(appointment.appointment_date)} às {String(appointment.start_time).slice(0, 5)} · {appointment.service_name}</span>
+                                    </div>
+                                    <a
+                                        href={getWhatsAppUrl(appointment, type)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={() => markWhatsAppNotificationOpened(appointment, type)}
+                                    >
+                                        Abrir WhatsApp
+                                    </a>
+                                </article>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="admin-message-center__empty">Nenhuma mensagem pendente neste momento.</p>
+                    )}
+                </section>
 
                 {(adminView === "agenda" || adminView === "week") && (
                     <section className="admin-top-agenda">
