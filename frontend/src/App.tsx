@@ -8,6 +8,7 @@ type Service = {
     duration: string;
     durationMinutes: number;
     price: string;
+    priceCents: number;
 };
 
 type Appointment = {
@@ -43,6 +44,7 @@ const fallbackServices: Service[] = [
         duration: "1h30",
         durationMinutes: 90,
         price: "R$ 60,00",
+        priceCents: 6000,
     },
     {
         name: "Esmaltação em Gel Decorada",
@@ -51,6 +53,7 @@ const fallbackServices: Service[] = [
         duration: "2h",
         durationMinutes: 120,
         price: "R$ 70,00",
+        priceCents: 7000,
     },
     {
         name: "Reparo de Unha",
@@ -59,6 +62,7 @@ const fallbackServices: Service[] = [
         duration: "20 min",
         durationMinutes: 20,
         price: "R$ 10,00",
+        priceCents: 1000,
     },
 ];
 
@@ -211,6 +215,7 @@ function PublicSite() {
                         duration: formatDuration(service.duration_minutes),
                         durationMinutes: service.duration_minutes,
                         price: formatCurrency(service.price_cents),
+                        priceCents: service.price_cents,
                     })),
                 );
             }
@@ -583,6 +588,7 @@ function PublicSite() {
                     start_time: selectedTime,
                     duration_minutes:
                     selectedServiceInformation.durationMinutes,
+                    price_cents: selectedServiceInformation.priceCents,
                     status: "confirmed",
                 });
 
@@ -624,7 +630,19 @@ function PublicSite() {
 
                 <header className="navbar">
                     <a className="brand" href="#inicio">
-                        <span className="brand__symbol">MS</span>
+                        <span className="brand__symbol">
+                            <img
+                                src="/logo-mirian.png"
+                                alt="Logo Mirian Silva Nail Design"
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    borderRadius: "50%",
+                                    display: "block",
+                                }}
+                            />
+                        </span>
                         <span className="brand__text">
                             <strong>Mirian Silva</strong>
                             <small>Nail Design</small>
@@ -905,7 +923,9 @@ type AdminAppointment = {
     appointment_date: string;
     start_time: string;
     duration_minutes: number;
-    status: "pending" | "confirmed" | "cancelled";
+    price_cents: number | null;
+    client_hidden: boolean;
+    status: "pending" | "confirmed" | "completed" | "cancelled" | "no-show";
     created_at: string;
 };
 
@@ -979,15 +999,12 @@ const adminStyles = `
     margin-bottom: 28px;
 }
 
-.admin-login__symbol {
+.admin-login__logo {
     width: 54px;
     height: 54px;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #b8788b, #6f3949);
-    color: #fff;
-    font-weight: 700;
+    display: block;
+    object-fit: contain;
+    flex: 0 0 54px;
 }
 
 .admin-login__brand strong,
@@ -1183,6 +1200,11 @@ const adminStyles = `
 .admin-status--confirmed {
     background: #e7f7ed;
     color: #1d7540;
+}
+
+.admin-status--completed {
+    background: #e7eefb;
+    color: #315a9b;
 }
 
 .admin-status--cancelled {
@@ -3089,6 +3111,229 @@ const adminEnhancementStyles = `
         align-items: stretch;
     }
 }
+
+/* Financeiro */
+.admin-finance {
+    display: grid;
+    gap: 20px;
+}
+
+.admin-finance__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 22px;
+    border: 1px solid rgba(125, 78, 91, 0.12);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 14px 38px rgba(83, 48, 58, 0.07);
+}
+
+.admin-finance__eyebrow {
+    display: block;
+    margin-bottom: 6px;
+    color: #9a5368;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.admin-finance__header h2,
+.admin-finance__services h3 {
+    margin: 0;
+    color: #35272c;
+}
+
+.admin-finance__header p,
+.admin-finance__services p {
+    margin: 7px 0 0;
+    color: #755961;
+}
+
+.admin-finance__month-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.admin-finance__month-controls button,
+.admin-finance__month-controls input {
+    min-height: 42px;
+    box-sizing: border-box;
+    border: 1px solid #d7c0c7;
+    border-radius: 11px;
+    padding: 9px 12px;
+    background: #fff;
+    color: #6d3445;
+    font: inherit;
+    font-weight: 750;
+}
+
+.admin-finance__month-controls button {
+    cursor: pointer;
+}
+
+.admin-finance__period {
+    display: flex;
+    gap: 7px;
+    align-items: baseline;
+    padding: 0 4px;
+    color: #80666e;
+    text-transform: capitalize;
+}
+
+.admin-finance__period strong {
+    color: #4a343b;
+    font-size: 1.06rem;
+}
+
+.admin-finance__cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.admin-finance-card {
+    min-height: 132px;
+    padding: 20px;
+    border: 1px solid rgba(125, 78, 91, 0.13);
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgba(83, 48, 58, 0.06);
+}
+
+.admin-finance-card span,
+.admin-finance-card small {
+    display: block;
+}
+
+.admin-finance-card span {
+    color: #80666e;
+    font-size: 0.8rem;
+    font-weight: 850;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.admin-finance-card strong {
+    display: block;
+    margin: 12px 0 8px;
+    color: #4f303a;
+    font-size: clamp(1.45rem, 3vw, 2rem);
+}
+
+.admin-finance-card small {
+    color: #91747c;
+    line-height: 1.35;
+}
+
+.admin-finance-card--completed {
+    background: linear-gradient(145deg, #fff, #f0f8f2);
+}
+
+.admin-finance-card--forecast {
+    background: linear-gradient(145deg, #fff, #f8edf1);
+}
+
+.admin-finance__services {
+    padding: 22px;
+    border: 1px solid rgba(125, 78, 91, 0.12);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 14px 38px rgba(83, 48, 58, 0.07);
+}
+
+.admin-finance__services-header {
+    margin-bottom: 18px;
+}
+
+.admin-finance-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.admin-finance-table {
+    width: 100%;
+    min-width: 820px;
+    border-collapse: collapse;
+}
+
+.admin-finance-table th,
+.admin-finance-table td {
+    padding: 13px 12px;
+    border-bottom: 1px solid #eee4e7;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.admin-finance-table th {
+    color: #80666e;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.admin-finance-table td {
+    color: #4d363e;
+    font-size: 0.88rem;
+}
+
+.admin-finance-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.admin-finance__empty {
+    display: grid;
+    gap: 6px;
+    padding: 30px 18px;
+    border-radius: 16px;
+    background: #faf6f7;
+    text-align: center;
+    color: #80666e;
+}
+
+.admin-finance__empty strong {
+    color: #4d363e;
+}
+
+.admin-finance__note {
+    margin: 0;
+    padding: 13px 16px;
+    border-radius: 14px;
+    background: #f7eef1;
+    color: #755961;
+    font-size: 0.83rem;
+}
+
+@media (max-width: 980px) {
+    .admin-finance__cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-finance__header {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 620px) {
+    .admin-finance__cards {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-finance__month-controls {
+        width: 100%;
+    }
+
+    .admin-finance__month-controls input {
+        flex: 1;
+        min-width: 140px;
+    }
+}
+
 `;
 
 
@@ -3116,8 +3361,9 @@ function AdminPanel() {
         }
     });
 
-    const [adminView, setAdminView] = useState<"agenda" | "week" | "clients" | "settings">("agenda");
+    const [adminView, setAdminView] = useState<"agenda" | "week" | "clients" | "finance" | "settings">("agenda");
     const [agendaDate, setAgendaDate] = useState(formatDateForInput(new Date()));
+    const [financeMonth, setFinanceMonth] = useState(() => formatDateForInput(new Date()).slice(0, 7));
 
     const [showManualForm, setShowManualForm] = useState(false);
     const [manualClientName, setManualClientName] = useState("");
@@ -3212,7 +3458,7 @@ function AdminPanel() {
                 {data: hoursData, error: hoursLoadError},
             ] = await Promise.all([
                 supabase.from("appointments")
-                    .select("id, client_name, client_phone, client_email, service_name, appointment_date, start_time, duration_minutes, status, created_at")
+                    .select("id, client_name, client_phone, client_email, service_name, appointment_date, start_time, duration_minutes, price_cents, client_hidden, status, created_at")
                     .order("appointment_date", {ascending: true})
                     .order("start_time", {ascending: true}),
                 supabase.from("schedule_blocks")
@@ -3330,8 +3576,9 @@ function AdminPanel() {
             appointment_date: manualDate,
             start_time: manualTime,
             duration_minutes: service.duration_minutes,
+            price_cents: service.price_cents,
             status: "confirmed",
-        }).select("id, client_name, client_phone, client_email, service_name, appointment_date, start_time, duration_minutes, status, created_at").single();
+        }).select("id, client_name, client_phone, client_email, service_name, appointment_date, start_time, duration_minutes, price_cents, client_hidden, status, created_at").single();
 
         if (error || !data) {
             console.error("Erro ao criar agendamento:", error);
@@ -3402,6 +3649,35 @@ function AdminPanel() {
         setAppointmentEditError("");
     }
 
+    async function completeAppointment(appointment: AdminAppointment) {
+        if (!window.confirm(`Marcar o atendimento de ${appointment.client_name} como concluído?`)) return;
+
+        const {error} = await supabase
+            .from("appointments")
+            .update({status: "completed"})
+            .eq("id", appointment.id);
+
+        if (error) {
+            console.error("Erro ao concluir atendimento:", error);
+            setPanelError("Não foi possível concluir o atendimento.");
+            return;
+        }
+
+        setAppointments((current) =>
+            current.map((item) =>
+                item.id === appointment.id
+                    ? {...item, status: "completed"}
+                    : item,
+            ),
+        );
+
+        setSelectedAdminAppointment((current) =>
+            current?.id === appointment.id
+                ? {...current, status: "completed"}
+                : current,
+        );
+    }
+
     async function cancelAppointment(appointment: AdminAppointment) {
         if (!window.confirm(`Cancelar o agendamento de ${appointment.client_name}?`)) return;
         const {error} = await supabase.from("appointments").update({status: "cancelled"}).eq("id", appointment.id);
@@ -3426,7 +3702,7 @@ function AdminPanel() {
 
     const clients = useMemo<AdminClient[]>(() => {
         const grouped = new Map<string, AdminAppointment[]>();
-        appointments.forEach((appointment) => {
+        appointments.filter((appointment) => !appointment.client_hidden).forEach((appointment) => {
             const digits = appointment.client_phone.replace(/\D/g, "");
             const key = digits || appointment.client_name.trim().toLowerCase().replace(/\s+/g, "-");
             grouped.set(key, [...(grouped.get(key) ?? []), appointment]);
@@ -3499,17 +3775,43 @@ function AdminPanel() {
     }
 
     async function deleteClient(client: AdminClient) {
-        if (!window.confirm(`Excluir ${client.name} e todo o histórico de agendamentos dessa cliente?`)) return;
-        setDeletingClientKey(client.key);
-        const ids = client.appointments.map((item) => item.id);
-        const {error} = await supabase.from("appointments").delete().in("id", ids);
-        if (error) {
-            setPanelError("Não foi possível excluir a cliente.");
-            setDeletingClientKey("");
+        if (!window.confirm(`Remover ${client.name} da lista de clientes? O histórico financeiro e os agendamentos serão preservados.`)) return;
+
+        const appointmentIds = client.appointments.map((appointment) => appointment.id);
+
+        if (!appointmentIds.length) {
+            setSelectedClient(null);
             return;
         }
-        setAppointments((current) => current.filter((item) => !ids.includes(item.id)));
-        setDeletingClientKey("");
+
+        setDeletingClientKey(client.key);
+        setPanelError("");
+
+        try {
+            const {error} = await supabase
+                .from("appointments")
+                .update({client_hidden: true})
+                .in("id", appointmentIds);
+
+            if (error) {
+                throw error;
+            }
+
+            setAppointments((current) =>
+                current.map((appointment) =>
+                    appointmentIds.includes(appointment.id)
+                        ? {...appointment, client_hidden: true}
+                        : appointment,
+                ),
+            );
+
+            setSelectedClient(null);
+        } catch (error) {
+            console.error("Erro ao remover cliente da lista:", error);
+            setPanelError("Não foi possível remover a cliente da lista.");
+        } finally {
+            setDeletingClientKey("");
+        }
     }
 
     const weekDates = useMemo(() => {
@@ -3528,6 +3830,83 @@ function AdminPanel() {
             appointments.filter((item) => weekDates.includes(item.appointment_date))
                 .sort((a, b) => `${a.appointment_date}${String(a.start_time).slice(0, 5)}`.localeCompare(`${b.appointment_date}${String(b.start_time).slice(0, 5)}`)),
         [appointments, weekDates]);
+
+    function addMonthsToFinanceMonth(monthValue: string, amount: number) {
+        const [year, month] = monthValue.split("-").map(Number);
+        const date = new Date(year, month - 1 + amount, 1, 12, 0, 0);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    const financeMonthLabel = useMemo(() => {
+        const [year, month] = financeMonth.split("-").map(Number);
+        return new Date(year, month - 1, 1, 12, 0, 0).toLocaleDateString("pt-BR", {
+            month: "long",
+            year: "numeric",
+        });
+    }, [financeMonth]);
+
+    const financeAppointments = useMemo(
+        () => appointments.filter((appointment) => appointment.appointment_date.startsWith(financeMonth)),
+        [appointments, financeMonth],
+    );
+
+    const completedFinanceAppointments = useMemo(
+        () => financeAppointments.filter((appointment) => appointment.status === "completed"),
+        [financeAppointments],
+    );
+
+    const scheduledFinanceAppointments = useMemo(
+        () => financeAppointments.filter(
+            (appointment) => appointment.status === "confirmed" || appointment.status === "pending",
+        ),
+        [financeAppointments],
+    );
+
+    const completedRevenueCents = useMemo(
+        () => completedFinanceAppointments.reduce((total, appointment) => total + (appointment.price_cents ?? 0), 0),
+        [completedFinanceAppointments],
+    );
+
+    const scheduledRevenueCents = useMemo(
+        () => scheduledFinanceAppointments.reduce((total, appointment) => total + (appointment.price_cents ?? 0), 0),
+        [scheduledFinanceAppointments],
+    );
+
+    const forecastRevenueCents = completedRevenueCents + scheduledRevenueCents;
+
+    const financeServiceSummary = useMemo(() => {
+        const summary = new Map<string, {
+            serviceName: string;
+            completedCount: number;
+            completedCents: number;
+            scheduledCount: number;
+            scheduledCents: number;
+        }>();
+
+        [...completedFinanceAppointments, ...scheduledFinanceAppointments].forEach((appointment) => {
+            const current = summary.get(appointment.service_name) ?? {
+                serviceName: appointment.service_name,
+                completedCount: 0,
+                completedCents: 0,
+                scheduledCount: 0,
+                scheduledCents: 0,
+            };
+
+            if (appointment.status === "completed") {
+                current.completedCount += 1;
+                current.completedCents += appointment.price_cents ?? 0;
+            } else {
+                current.scheduledCount += 1;
+                current.scheduledCents += appointment.price_cents ?? 0;
+            }
+
+            summary.set(appointment.service_name, current);
+        });
+
+        return Array.from(summary.values()).sort(
+            (a, b) => (b.completedCents + b.scheduledCents) - (a.completedCents + a.scheduledCents),
+        );
+    }, [completedFinanceAppointments, scheduledFinanceAppointments]);
 
     function getNotificationKey(appointmentId: string, type: WhatsAppNotificationType) {
         return `${appointmentId}:${type}`;
@@ -3687,6 +4066,14 @@ function AdminPanel() {
         setSavingHoursId(null);
     }
 
+    function getAppointmentStatusLabel(status: AdminAppointment["status"]) {
+        if (status === "completed") return "Concluído";
+        if (status === "cancelled") return "Cancelado";
+        if (status === "no-show") return "Não compareceu";
+        if (status === "pending") return "Pendente";
+        return "Confirmado";
+    }
+
     const renderAppointmentCard = (appointment: AdminAppointment) => {
         const dueTypes = getDueNotificationTypes(appointment);
 
@@ -3706,7 +4093,7 @@ function AdminPanel() {
                         <span className="admin-booking-card__time">{String(appointment.start_time).slice(0, 5)}</span>
                         <h3>{appointment.client_name}</h3>
                     </div>
-                    <span className={`admin-status admin-status--${appointment.status}`}>{appointment.status === "cancelled" ? "Cancelado" : "Confirmado"}</span>
+                    <span className={`admin-status admin-status--${appointment.status}`}>{getAppointmentStatusLabel(appointment.status)}</span>
                 </div>
                 <div className="admin-booking-card__details">
                     <div><span>Data</span><strong>{formatAdminDate(appointment.appointment_date)}</strong></div>
@@ -3716,7 +4103,12 @@ function AdminPanel() {
                 </div>
                 <div className="admin-booking-card__footer" onClick={(event) => event.stopPropagation()}>
                     <button type="button" onClick={() => openAppointmentDetails(appointment)}>Editar detalhes</button>
-                    {appointment.status !== "cancelled" && <button type="button" onClick={() => void cancelAppointment(appointment)}>Cancelar</button>}
+                    {appointment.status !== "cancelled" && appointment.status !== "completed" && (
+                        <button type="button" onClick={() => void completeAppointment(appointment)}>Concluir atendimento</button>
+                    )}
+                    {appointment.status !== "cancelled" && appointment.status !== "completed" && (
+                        <button type="button" onClick={() => void cancelAppointment(appointment)}>Cancelar</button>
+                    )}
                     {dueTypes.map((type) => {
                         const key = getNotificationKey(appointment.id, type);
                         const wasOpened = Boolean(openedWhatsAppNotifications[key]);
@@ -3749,7 +4141,7 @@ function AdminPanel() {
                 <style>{adminStyles + adminEnhancementStyles}</style>
                 <div className="admin-login">
                     <form className="admin-login__card" onSubmit={handleLogin}>
-                        <div className="admin-login__brand"><span className="admin-login__symbol">MS</span><div><strong>Mirian Silva</strong><span>Painel administrativo</span></div></div>
+                        <div className="admin-login__brand"><img className="admin-login__logo" src="/logo-mirian.png" alt="Logo Mirian Silva Nail Design"/><div><strong>Mirian Silva</strong><span>Painel administrativo</span></div></div>
                         <h1>Acesso da Mirian</h1>
                         <p>Entre com o e-mail e a senha cadastrados no Supabase.</p>
                         {loginError && <p className="admin-login__error">{loginError}</p>}
@@ -3775,6 +4167,7 @@ function AdminPanel() {
                     <button className={`admin-dashboard-card${adminView === "agenda" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("agenda")}><strong>Agenda do dia</strong><span>Veja todos os atendimentos do dia.</span></button>
                     <button className={`admin-dashboard-card${adminView === "week" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("week")}><strong>Agenda semanal</strong><span>Atendimentos em ordem de dia e horário.</span></button>
                     <button className={`admin-dashboard-card${adminView === "clients" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("clients")}><strong>Clientes</strong><span>Cadastros, histórico e indicadores.</span></button>
+                    <button className={`admin-dashboard-card${adminView === "finance" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("finance")}><strong>Financeiro</strong><span>Faturamento e previsão mensal.</span></button>
                     <button className={`admin-dashboard-card${adminView === "settings" ? " is-active" : ""}`} type="button" onClick={() => setAdminView("settings")}><strong>Configurações</strong><span>Serviços e horários do site.</span></button>
                 </div>
 
@@ -3850,7 +4243,102 @@ function AdminPanel() {
 
                 {panelError && <p className="admin-panel__error">{panelError}</p>}
 
-                {adminView === "settings" ? (
+                {adminView === "finance" ? (
+                    <section className="admin-finance">
+                        <div className="admin-finance__header">
+                            <div>
+                                <span className="admin-finance__eyebrow">Controle financeiro</span>
+                                <h2>Financeiro mensal</h2>
+                                <p>Valores calculados automaticamente a partir dos agendamentos do mês.</p>
+                            </div>
+
+                            <div className="admin-finance__month-controls">
+                                <button type="button" onClick={() => setFinanceMonth((current) => addMonthsToFinanceMonth(current, -1))}>←</button>
+                                <input type="month" value={financeMonth} onChange={(event) => setFinanceMonth(event.target.value)}/>
+                                <button type="button" onClick={() => setFinanceMonth((current) => addMonthsToFinanceMonth(current, 1))}>→</button>
+                                <button type="button" onClick={() => setFinanceMonth(formatDateForInput(new Date()).slice(0, 7))}>Mês atual</button>
+                            </div>
+                        </div>
+
+                        <div className="admin-finance__period">
+                            <span>Resumo de</span>
+                            <strong>{financeMonthLabel}</strong>
+                        </div>
+
+                        <div className="admin-finance__cards">
+                            <article className="admin-finance-card admin-finance-card--completed">
+                                <span>Faturamento realizado</span>
+                                <strong>{formatCurrency(completedRevenueCents)}</strong>
+                                <small>Somente atendimentos concluídos</small>
+                            </article>
+
+                            <article className="admin-finance-card">
+                                <span>Valor agendado</span>
+                                <strong>{formatCurrency(scheduledRevenueCents)}</strong>
+                                <small>Atendimentos confirmados ou pendentes</small>
+                            </article>
+
+                            <article className="admin-finance-card admin-finance-card--forecast">
+                                <span>Previsão total do mês</span>
+                                <strong>{formatCurrency(forecastRevenueCents)}</strong>
+                                <small>Realizado + agendado</small>
+                            </article>
+
+                            <article className="admin-finance-card">
+                                <span>Atendimentos realizados</span>
+                                <strong>{completedFinanceAppointments.length}</strong>
+                                <small>Serviços marcados como concluídos</small>
+                            </article>
+                        </div>
+
+                        <section className="admin-finance__services">
+                            <div className="admin-finance__services-header">
+                                <div>
+                                    <h3>Resumo por serviço</h3>
+                                    <p>Quantidade e valores de cada serviço no mês selecionado.</p>
+                                </div>
+                            </div>
+
+                            {financeServiceSummary.length ? (
+                                <div className="admin-finance-table-wrapper">
+                                    <table className="admin-finance-table">
+                                        <thead>
+                                        <tr>
+                                            <th>Serviço</th>
+                                            <th>Realizados</th>
+                                            <th>Valor realizado</th>
+                                            <th>Agendados</th>
+                                            <th>Valor agendado</th>
+                                            <th>Total previsto</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {financeServiceSummary.map((service) => (
+                                            <tr key={service.serviceName}>
+                                                <td><strong>{service.serviceName}</strong></td>
+                                                <td>{service.completedCount}</td>
+                                                <td>{formatCurrency(service.completedCents)}</td>
+                                                <td>{service.scheduledCount}</td>
+                                                <td>{formatCurrency(service.scheduledCents)}</td>
+                                                <td><strong>{formatCurrency(service.completedCents + service.scheduledCents)}</strong></td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="admin-finance__empty">
+                                    <strong>Nenhum valor para este mês.</strong>
+                                    <span>Os agendamentos confirmados e concluídos aparecerão aqui automaticamente.</span>
+                                </div>
+                            )}
+                        </section>
+
+                        <p className="admin-finance__note">
+                            Agendamentos cancelados ou marcados como não compareceu não entram nos valores financeiros.
+                        </p>
+                    </section>
+                ) : adminView === "settings" ? (
                     <section className="admin-settings">
                         <div className="admin-settings__intro"><div><span className="admin-settings__eyebrow">Configurações do site</span><h2>Serviços e horários</h2><p>As alterações salvas aqui aparecem no agendamento das clientes.</p></div></div>
                         {settingsError && <p className="admin-settings__message admin-settings__message--error">{settingsError}</p>}
@@ -3898,7 +4386,7 @@ function AdminPanel() {
                                         <div className="admin-client-card__actions">
                                             <button type="button" onClick={() => setSelectedClient(client)}>Ver histórico</button>
                                             <button type="button" className="is-secondary" onClick={() => openClientEditor(client)}>Editar cadastro</button>
-                                            <button type="button" className="is-danger" disabled={deletingClientKey === client.key} onClick={() => void deleteClient(client)}>{deletingClientKey === client.key ? "Excluindo..." : "Excluir cliente"}</button>
+                                            <button type="button" className="is-danger" disabled={deletingClientKey === client.key} onClick={() => void deleteClient(client)}>{deletingClientKey === client.key ? "Excluindo..." : "Remover da lista"}</button>
                                         </div>
                                     </article>
                                 );
@@ -3955,7 +4443,12 @@ function AdminPanel() {
                                     {appointmentEditError && <p className="admin-reschedule__message admin-edit-form__full">{appointmentEditError}</p>}
                                     <div className="admin-edit-actions">
                                         <button className="save" type="button" disabled={isSavingAppointment} onClick={() => void saveAppointmentChanges()}>{isSavingAppointment ? "Salvando..." : "Salvar alterações"}</button>
-                                        {selectedAdminAppointment.status !== "cancelled" && <button className="cancel" type="button" onClick={() => void cancelAppointment(selectedAdminAppointment)}>Cancelar agendamento</button>}
+                                        {selectedAdminAppointment.status !== "cancelled" && selectedAdminAppointment.status !== "completed" && (
+                                            <button className="save" type="button" onClick={() => void completeAppointment(selectedAdminAppointment)}>Concluir atendimento</button>
+                                        )}
+                                        {selectedAdminAppointment.status !== "cancelled" && selectedAdminAppointment.status !== "completed" && (
+                                            <button className="cancel" type="button" onClick={() => void cancelAppointment(selectedAdminAppointment)}>Cancelar agendamento</button>
+                                        )}
                                         <button className="delete" type="button" onClick={() => void deleteAppointment(selectedAdminAppointment)}>Excluir agendamento</button>
                                         <button className="close" type="button" onClick={() => setSelectedAdminAppointment(null)}>Fechar</button>
                                     </div>
@@ -3971,7 +4464,7 @@ function AdminPanel() {
                             <button className="admin-modal__close" type="button" onClick={() => setSelectedClient(null)}>×</button>
                             <h2>Histórico de {selectedClient.name}</h2>
                             <p>{selectedClient.phone} • {selectedClient.email || "E-mail não informado"}</p>
-                            <div className="admin-client-history__list">{selectedClient.appointments.map((appointment) => <article key={appointment.id}><div><strong>{appointment.service_name}</strong><span>{formatAdminDate(appointment.appointment_date)} às {String(appointment.start_time).slice(0, 5)}</span></div><span>{appointment.status === "cancelled" ? "Cancelado" : "Confirmado"}</span></article>)}</div>
+                            <div className="admin-client-history__list">{selectedClient.appointments.map((appointment) => <article key={appointment.id}><div><strong>{appointment.service_name}</strong><span>{formatAdminDate(appointment.appointment_date)} às {String(appointment.start_time).slice(0, 5)}</span></div><span>{getAppointmentStatusLabel(appointment.status)}</span></article>)}</div>
                         </section>
                     </div>
                 )}
@@ -4006,4 +4499,3 @@ function App() {
 }
 
 export default App;
-
